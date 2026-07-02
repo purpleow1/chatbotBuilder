@@ -7,14 +7,21 @@ This plan assumes we can skip the marketing landing page and focus on the produc
 - App: Next.js App Router, React, TypeScript
 - UI: Tailwind CSS, shadcn/ui, lucide-react
 - Client data: TanStack Query
-- Backend: Next.js Route Handlers / Server Actions where appropriate
+- Backend: Next.js Route Handlers as the REST API boundary
 - Auth: Supabase Auth
 - Database: Supabase Postgres with pgvector
 - Storage: Supabase Storage for uploaded source files
 - Realtime: Supabase Realtime for ingestion/job status and chat updates if useful
-- AI: OpenAI or compatible API for embeddings and chat completion
+- AI: Google Gemini API for embeddings and chat completion, using free-tier-friendly models where possible
 - Billing: Stripe test mode, with mock fallback if keys are absent
 - Deployment: Vercel
+
+## Architecture Requirements
+
+- Keep client code, REST API routes, and DB access modules separate.
+- Fetch application data from API routes only. Do not call Supabase or DB helpers from components, including Server Components.
+- Access Supabase from server-side API/DB modules with the service account key only.
+- Do not use a public Supabase data client or RLS for CRUD access. Supabase Realtime may use a public client when needed because browser Realtime requires it.
 
 ## Product Scope
 
@@ -94,11 +101,13 @@ Dependency: Step 1
 
 Goal: wire the app to Supabase and define the MVP data model.
 
+Schema review draft: [DB_SCHEMA_PLAN.md](DB_SCHEMA_PLAN.md)
+
 Implementation tasks:
 
-- Add Supabase browser/server clients.
+- Add a server-only Supabase service-role client for API routes and DB modules.
 - Add database migrations or SQL files for:
-  - `profiles`
+  - `users`
   - `workspaces`
   - `workspace_members`
   - `bots`
@@ -109,14 +118,16 @@ Implementation tasks:
   - `subscriptions`
   - `usage_events`
 - Enable pgvector and add an embedding vector column on `document_chunks`.
-- Add row-level security policies for workspace-scoped access.
-- Add seed/demo data script if useful.
+- Add REST API data-access patterns that keep components away from DB/Supabase calls.
+- Add API-layer workspace membership checks for workspace-scoped access.
 - Document Supabase setup and required env vars.
 
 What you can check:
 
 - Running the SQL/migrations in Supabase succeeds without manual fixes.
-- A signed-in user can only see their own workspace data.
+- A signed-in user can only see their own workspace data through API routes.
+- Components fetch data from API routes only, including Server Components.
+- No public Supabase data client or RLS policy is required for CRUD access.
 - The app handles missing Supabase env vars with a clear developer-facing message.
 
 ## Step 3: Authentication And Workspace Onboarding
@@ -129,7 +140,7 @@ Implementation tasks:
 
 - Implement Supabase email/password auth.
 - Protect `/app` routes.
-- Create profile/workspace records on first sign-in.
+- Create user/workspace records on first sign-in.
 - Add logout.
 - Add basic account/workspace switcher UI, even if MVP only creates one workspace.
 - Add loading, empty, and error states.
@@ -200,7 +211,7 @@ Implementation tasks:
 
 - Extract text from supported file types.
 - Chunk text with stable metadata: source document id, page if available, chunk index.
-- Generate embeddings through the selected AI provider.
+- Generate embeddings through the selected Google Gemini API embedding model.
 - Store chunks and embeddings in Supabase.
 - Add a vector search RPC/function scoped by bot id.
 - Add retry/error handling for failed ingestion.
@@ -222,11 +233,11 @@ Goal: bots answer questions using uploaded knowledge.
 Implementation tasks:
 
 - Add `/api/chat` route.
-- Accept bot id, conversation id, and user message.
+- Accept bot id, conversation id, and structured user message parts.
 - Retrieve top matching chunks by vector similarity.
-- Build a grounded system prompt using bot settings and retrieved context.
+- Build a grounded prompt using bot settings and retrieved context for the selected Google Gemini chat model.
 - Stream or return assistant responses.
-- Persist conversations and messages.
+- Persist conversations and messages, storing message parts as the canonical payload.
 - Include citations/source names in the response payload if practical.
 - Track usage events for message counts.
 - Add guardrails for missing knowledge and unsafe cross-bot access.
@@ -436,4 +447,3 @@ The MVP is ready when this path works end to end:
 6. User copies an embed snippet into a test page.
 7. External widget answers from the same bot.
 8. Free plan limits are visible and at least one upgrade flow works.
-
