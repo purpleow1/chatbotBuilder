@@ -46,7 +46,7 @@ npm run build
 
 ## Supabase Setup
 
-Step 2 adds the initial SQL migration at [supabase/migrations/202607020001_initial_schema.sql](/Users/user/repos/chatbotBuilder/supabase/migrations/202607020001_initial_schema.sql). Apply it to a Supabase project with the SQL editor or Supabase CLI before wiring authenticated app flows.
+Step 2 adds the initial SQL migration at [supabase/migrations/202607020001_initial_schema.sql](/Users/user/repos/chatbotBuilder/supabase/migrations/202607020001_initial_schema.sql). Step 3 adds service-role grants at [supabase/migrations/202607020002_grant_service_role_access.sql](/Users/user/repos/chatbotBuilder/supabase/migrations/202607020002_grant_service_role_access.sql). Apply both to a Supabase project with the SQL editor or Supabase CLI before wiring authenticated app flows.
 
 Required environment variables:
 
@@ -82,6 +82,7 @@ Supabase dashboard settings to verify:
 
 Manual auth checks:
 
+- Open `/api/health` and confirm service-role database access is working.
 - Visit `/signup`, create an account, and confirm that `/app` shows your workspace name in the header.
 - Visit `/api/workspaces` while logged in and confirm it returns only your workspace.
 - Use the logout button, then confirm `/app` redirects back to `/login`.

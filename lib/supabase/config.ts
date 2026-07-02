@@ -15,6 +15,20 @@ function getSupabasePublicKey() {
   return process.env[SUPABASE_PUBLISHABLE_KEY_ENV] || process.env[SUPABASE_ANON_KEY_ENV] || "";
 }
 
+function getSupabaseProjectUrl() {
+  const configuredUrl = process.env[SUPABASE_URL_ENV] || "";
+
+  if (!configuredUrl) {
+    return "";
+  }
+
+  try {
+    return new URL(configuredUrl).origin;
+  } catch {
+    return configuredUrl;
+  }
+}
+
 export function getMissingSupabaseAuthEnv() {
   const missing: string[] = [];
 
@@ -41,7 +55,20 @@ export function getSupabasePublicConfig() {
   }
 
   return {
-    url: process.env[SUPABASE_URL_ENV]!,
+    url: getSupabaseProjectUrl(),
     key: getSupabasePublicKey()
+  };
+}
+
+export function getSupabaseServiceConfig() {
+  const missing = getMissingSupabaseServiceEnv();
+
+  if (missing.length > 0) {
+    throw new SupabaseConfigError(missing);
+  }
+
+  return {
+    url: getSupabaseProjectUrl(),
+    key: process.env[SUPABASE_SERVICE_ROLE_KEY_ENV]!
   };
 }

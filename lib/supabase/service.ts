@@ -1,7 +1,7 @@
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/db/database.types";
-import { getMissingSupabaseServiceEnv, SupabaseConfigError } from "@/lib/supabase/config";
+import { getMissingSupabaseServiceEnv, getSupabaseServiceConfig, SupabaseConfigError } from "@/lib/supabase/config";
 
 export { SupabaseConfigError };
 
@@ -10,20 +10,12 @@ export function getMissingSupabaseEnv() {
 }
 
 export function getSupabaseServiceClient() {
-  const missing = getMissingSupabaseEnv();
+  const { url, key } = getSupabaseServiceConfig();
 
-  if (missing.length > 0) {
-    throw new SupabaseConfigError(missing);
-  }
-
-  return createClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
+  return createClient<Database>(url, key, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
     }
-  );
+  });
 }
