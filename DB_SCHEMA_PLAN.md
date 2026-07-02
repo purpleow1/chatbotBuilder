@@ -239,7 +239,7 @@ If this project is permanently single-workspace-per-user, merging is acceptable.
 
 - `documents.storage_path` points to the Supabase Storage object in a bucket such as `source-documents`. This is a convention rather than a foreign key.
 - `documents.workspace_id` and `document_chunks.workspace_id` duplicate the bot workspace to keep API authorization checks and common queries simple.
-- `document_chunks.embedding` should use the exact vector dimension returned by the selected Google Gemini API embedding model. Confirm the model and output dimension before writing the migration.
+- `document_chunks.embedding` uses `vector(768)` for the MVP. Gemini embedding models support configurable output dimensions, and 768 keeps storage smaller while remaining one of Google's recommended output sizes.
 - Deleting a document should cascade to its chunks.
 
 ### Conversations And Messages
@@ -282,7 +282,7 @@ If this project is permanently single-workspace-per-user, merging is acceptable.
 - Add `updated_at` triggers for mutable tables.
 - Enable `vector` extension for pgvector.
 - Add a vector index on `document_chunks.embedding`, preferably HNSW with cosine distance if available in the target Supabase Postgres version.
-- Add a scoped search RPC, for example `match_document_chunks(target_workspace_id uuid, target_bot_id uuid, query_embedding vector(<google_embedding_dimensions>), match_count int)`, that filters by workspace and bot. The API route remains responsible for validating the caller's workspace access before invoking it.
+- Add a scoped search RPC, for example `match_document_chunks(target_workspace_id uuid, target_bot_id uuid, query_embedding vector(768), match_count int)`, that filters by workspace and bot. The API route remains responsible for validating the caller's workspace access before invoking it.
 
 ## Deletion Behavior
 
@@ -293,7 +293,7 @@ If this project is permanently single-workspace-per-user, merging is acceptable.
 
 ## Review Questions Before Migration
 
-- Confirm the Google Gemini API chat model, embedding model, and embedding output dimension before freezing `document_chunks.embedding`.
+- Confirm the Google Gemini API chat model before Step 7. The Step 2 schema fixes embeddings at 768 dimensions; changing that later requires a migration and re-embedding stored chunks.
 - Confirm whether bot URLs and widget IDs should expose UUIDs only, or whether `bots.slug` should be added for human-readable routes.
 - Confirm whether document deletion should be hard delete only for the MVP, or whether a `deleted_at` soft-delete column is needed.
 - Confirm whether workspace members beyond the owner need invitations in the MVP, or whether the role fields are only future-ready.

@@ -61,6 +61,11 @@ Recommended completion note from each agent:
 
 - Files changed
 - Commands run
+- Integration handoff, when the step touches external services, credentials, storage, webhooks, deployment, or model providers:
+  - Accounts/projects the user must create or configure
+  - Env vars/secrets to add locally and in deployment
+  - SQL migrations, dashboard settings, buckets, redirect URLs, webhooks, or provider console steps to run
+  - Manual verification steps after configuration
 - Known limitations
 - Manual checks completed
 
@@ -130,6 +135,14 @@ What you can check:
 - No public Supabase data client or RLS policy is required for CRUD access.
 - The app handles missing Supabase env vars with a clear developer-facing message.
 
+Integration handoff to provide when complete:
+
+- Create or select a Supabase project.
+- Apply the SQL migration from `supabase/migrations/` in Supabase SQL editor or with Supabase CLI.
+- Add `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` to `.env.local`.
+- Keep `NEXT_PUBLIC_SUPABASE_ANON_KEY` only for future Realtime usage, not CRUD data access.
+- Verify `/api/health` reports Supabase as configured.
+
 ## Step 3: Authentication And Workspace Onboarding
 
 Dependency: Step 2
@@ -151,6 +164,12 @@ What you can check:
 - Logged-out users are redirected from `/app` to `/login`.
 - Logging out prevents access to protected routes.
 - Refreshing the page preserves the session.
+
+Integration handoff to provide when complete:
+
+- Supabase Auth provider settings to enable, including email/password and any redirect URLs.
+- Auth-related env var changes, if any.
+- Manual signup/login/logout verification steps.
 
 ## Step 4: Bot Management
 
@@ -201,6 +220,12 @@ What you can check:
 - Deleting a document removes it from the bot knowledge list.
 - The page shows status clearly after refresh.
 
+Integration handoff to provide when complete:
+
+- Supabase Storage bucket name, privacy setting, and any required bucket policies or server-only upload route details.
+- File size/type limits configured in the app.
+- Manual upload/delete verification steps.
+
 ## Step 6: Ingestion Pipeline And Vector Search
 
 Dependency: Step 5
@@ -223,6 +248,13 @@ What you can check:
 - Searching for a phrase from the document returns relevant chunks.
 - Failed ingestion produces a visible failed status instead of silent failure.
 - The same user cannot retrieve chunks from another user's bot.
+
+Integration handoff to provide when complete:
+
+- Google Gemini API key setup and required `GEMINI_API_KEY` env var.
+- Embedding model name and output dimension used by the migration.
+- Any retry/job execution setup needed for ingestion.
+- Manual retrieval test steps.
 
 ## Step 7: Chat API With RAG
 
@@ -248,6 +280,12 @@ What you can check:
 - Asking about unknown content produces a useful fallback, not a hallucinated answer.
 - Refreshing a conversation page shows prior messages.
 - Usage count increments after chat messages.
+
+Integration handoff to provide when complete:
+
+- Google Gemini chat model name and any safety/model configuration.
+- Required env vars or provider console setup.
+- Manual chat verification steps, including structured message parts and citations.
 
 ## Step 8: In-App Chat Experience
 
@@ -296,6 +334,12 @@ What you can check:
 - Disabling the widget makes the embed unavailable.
 - Theme settings visibly affect the widget.
 
+Integration handoff to provide when complete:
+
+- Public app URL / deployment URL needed by the embed snippet.
+- CORS, allowed origins, or widget loader route settings.
+- Manual external HTML test-page steps.
+
 ## Step 10: Billing, Plans, And Feature Gating
 
 Dependency: Steps 4, 7, and 9
@@ -322,6 +366,12 @@ What you can check:
 - Mock upgrade changes the active plan and unlocks gated features.
 - If Stripe test keys are configured, checkout can be started.
 - Billing page shows current plan and usage numbers.
+
+Integration handoff to provide when complete:
+
+- Stripe test-mode keys, webhook secret, product/price setup, and webhook endpoint URL.
+- Mock billing fallback behavior when Stripe env vars are missing.
+- Manual checkout and webhook verification steps.
 
 ## Step 11: Product Polish And MVP Hardening
 
@@ -397,6 +447,12 @@ What you can check:
 - Auth callback works on the deployed URL.
 - Widget embed works from a separate test page.
 - README explains exactly which env vars are required.
+
+Integration handoff to provide when complete:
+
+- Vercel project settings, production/preview env vars, and build command.
+- Supabase auth redirect URLs for local, preview, and production domains.
+- Any production CORS/widget domain settings.
 
 ## Step 14: Demo Tutorial Or Video Script
 
