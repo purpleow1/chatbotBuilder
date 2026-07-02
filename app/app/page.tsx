@@ -59,7 +59,7 @@ export default function AppDashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>Recent activity</CardTitle>
-            <CardDescription>Demo activity until Supabase is wired in Step 2.</CardDescription>
+            <CardDescription>Demo activity until bot management is connected.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">

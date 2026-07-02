@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { SupabaseConfigError } from "@/lib/supabase/service";
+import { SupabaseConfigError } from "@/lib/supabase/config";
 
 export class ApiError extends Error {
   constructor(

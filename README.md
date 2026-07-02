@@ -2,7 +2,7 @@
 
 Embeddable chatbot builder MVP. The app lets users create support bots, upload company knowledge, test answers in an in-app chat, and publish an embeddable widget.
 
-The current repo state implements **Steps 1-2** from [IMPLEMENTATION_PLAN.md](/Users/user/repos/chatbotBuilder/IMPLEMENTATION_PLAN.md): a Next.js app shell with product routes, shared UI primitives, Tailwind styling, TanStack Query provider, Supabase schema planning, server-only Supabase access helpers, and starter API-route data boundaries.
+The current repo state implements **Steps 1-3** from [IMPLEMENTATION_PLAN.md](/Users/user/repos/chatbotBuilder/IMPLEMENTATION_PLAN.md): a Next.js app shell with product routes, shared UI primitives, Tailwind styling, TanStack Query provider, Supabase schema planning, server-only Supabase data access, and Supabase email/password auth with first-login workspace onboarding.
 
 ## Tech Stack
 
@@ -52,10 +52,13 @@ Required environment variables:
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+# or legacy fallback:
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 ```
 
-`NEXT_PUBLIC_SUPABASE_ANON_KEY` is kept in [.env.example](/Users/user/repos/chatbotBuilder/.env.example) for future Supabase Realtime usage only. CRUD data access should go through REST API routes backed by the service-role client, not through a browser Supabase data client.
+`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` is used for Supabase Auth cookies. `NEXT_PUBLIC_SUPABASE_ANON_KEY` is supported as a legacy fallback and can later be reused for Realtime. CRUD data access should go through REST API routes backed by the service-role client, not through a browser Supabase data client.
 
 The schema intentionally does not add RLS policies. API routes validate the user session, check workspace membership, and then call server-only DB modules.
 
@@ -66,10 +69,29 @@ Step 2 also adds:
 
 The RAG schema uses `document_chunks.embedding vector(768)`, matching the MVP choice to request 768-dimensional Google Gemini embeddings.
 
+## Auth And Workspace Onboarding
+
+Supabase Auth email/password is wired through `@supabase/ssr` cookie sessions. The `/app` route group is protected by middleware, `/login` and `/signup` submit through server actions, and `GET /api/account` creates the mirrored `users`, default `workspaces`, owner `workspace_members`, and free `subscriptions` rows the first time an authenticated user enters the app.
+
+Supabase dashboard settings to verify:
+
+- Authentication > Providers: enable Email.
+- Authentication > URL Configuration: set Site URL to `http://localhost:3000` locally and add your deployed URL later.
+- Redirect URLs: add `http://localhost:3000/auth/confirm` and `http://localhost:3000/app`.
+- For immediate local MVP testing, disable email confirmations. If confirmations stay enabled, update the Confirm signup email template to send users to `/auth/confirm` with a token hash, or use Supabase's PKCE/code confirmation redirect.
+
+Manual auth checks:
+
+- Visit `/signup`, create an account, and confirm that `/app` shows your workspace name in the header.
+- Visit `/api/workspaces` while logged in and confirm it returns only your workspace.
+- Use the logout button, then confirm `/app` redirects back to `/login`.
+- Refresh `/app` after logging in and confirm the session persists.
+
 ## Implemented Routes
 
 - `/login`
 - `/signup`
+- `/auth/confirm`
 - `/app`
 - `/app/bots`
 - `/app/bots/new`
@@ -80,7 +102,6 @@ The RAG schema uses `document_chunks.embedding vector(768)`, matching the MVP ch
 
 ## Notes For Next Agents
 
-- Auth UI wiring, product persistence, document upload, RAG, billing, and the real widget loader are intentionally not implemented yet.
+- Product persistence, document upload, RAG, billing, and the real widget loader are intentionally not implemented yet.
 - Keep client components and Server Components away from Supabase/DB modules. Fetch app data through API routes.
-- Forms are visual shells for Step 1 and should be wired in later steps.
 - The dashboard includes demo data so the app has a realistic product feel before the backend exists.
