@@ -112,13 +112,13 @@ export function AppShell({ children, account }: { children: React.ReactNode; acc
           </Link>
           <nav className="hidden items-center gap-1 lg:flex">
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/app/bots/demo-support/chat">
+              <Link href="/app/bots">
                 <LifeBuoy className="size-4" />
-                Test bot
+                Bots
               </Link>
             </Button>
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/app/bots/demo-support">
+              <Link href="/app/bots">
                 <Settings className="size-4" />
                 Settings
               </Link>

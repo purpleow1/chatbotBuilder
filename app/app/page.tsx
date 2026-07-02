@@ -1,8 +1,16 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ArrowUpRight, Bot, FileText, MessageSquare, PlugZap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/stat-card";
+import { fetchInternalApi } from "@/lib/api/server-fetch";
+import type { BotCapacity, BotListItem } from "@/lib/db/bots";
+
+type BotsApiResponse = {
+  bots: BotListItem[];
+  capacity: BotCapacity;
+};
 
 const recentActivity = [
   "Return policy bot answered 18 questions",
@@ -10,7 +18,20 @@ const recentActivity = [
   "Widget theme updated for Acme Support"
 ];
 
-export default function AppDashboardPage() {
+export default async function AppDashboardPage() {
+  const result = await fetchInternalApi<BotsApiResponse>("/api/bots");
+
+  if (!result.ok) {
+    if (result.status === 401) {
+      redirect("/login?next=/app");
+    }
+
+    throw new Error(result.error.message);
+  }
+
+  const { bots, capacity } = result.data;
+  const firstBot = bots[0];
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
@@ -30,7 +51,7 @@ export default function AppDashboardPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <StatCard icon={Bot} label="Bots" value="1 / 1" helper="Free plan limit" />
+        <StatCard icon={Bot} label="Bots" value={`${capacity.used} / ${capacity.bot_limit}`} helper={`${capacity.plan} plan limit`} />
         <StatCard icon={FileText} label="Knowledge docs" value="3 / 5" helper="2 ready, 1 processing" />
         <StatCard icon={MessageSquare} label="Monthly messages" value="42 / 100" helper="Resets Aug 1" />
       </div>
@@ -59,20 +80,26 @@ export default function AppDashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>Recent activity</CardTitle>
-            <CardDescription>Demo activity until bot management is connected.</CardDescription>
+            <CardDescription>{firstBot ? "Recent workspace activity." : "Activity appears after you create a bot."}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {recentActivity.map((activity) => (
-                <div key={activity} className="flex items-start gap-3 rounded-md border bg-background p-3">
-                  <PlugZap className="mt-0.5 size-4 text-primary" />
-                  <p className="text-sm">{activity}</p>
-                </div>
-              ))}
-            </div>
+            {firstBot ? (
+              <div className="space-y-3">
+                {recentActivity.map((activity) => (
+                  <div key={activity} className="flex items-start gap-3 rounded-md border bg-background p-3">
+                    <PlugZap className="mt-0.5 size-4 text-primary" />
+                    <p className="text-sm">{activity}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-md border bg-background p-4 text-sm text-muted-foreground">
+                Create a bot to start building your support assistant.
+              </div>
+            )}
             <Button variant="outline" asChild className="mt-4 w-full">
-              <Link href="/app/bots/demo-support">
-                Open demo bot
+              <Link href={firstBot ? `/app/bots/${firstBot.id}` : "/app/bots/new"}>
+                {firstBot ? "Open bot" : "Create bot"}
                 <ArrowUpRight className="size-4" />
               </Link>
             </Button>

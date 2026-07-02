@@ -2,7 +2,7 @@
 
 Embeddable chatbot builder MVP. The app lets users create support bots, upload company knowledge, test answers in an in-app chat, and publish an embeddable widget.
 
-The current repo state implements **Steps 1-3** from [IMPLEMENTATION_PLAN.md](/Users/user/repos/chatbotBuilder/IMPLEMENTATION_PLAN.md): a Next.js app shell with product routes, shared UI primitives, Tailwind styling, TanStack Query provider, Supabase schema planning, server-only Supabase data access, and Supabase email/password auth with first-login workspace onboarding.
+The current repo state implements **Steps 1-4** from [IMPLEMENTATION_PLAN.md](/Users/user/repos/chatbotBuilder/IMPLEMENTATION_PLAN.md): a Next.js app shell with product routes, shared UI primitives, Tailwind styling, TanStack Query provider, Supabase schema planning, server-only Supabase data access, Supabase email/password auth with first-login workspace onboarding, and API-backed bot management.
 
 ## Tech Stack
 
@@ -62,10 +62,13 @@ SUPABASE_SERVICE_ROLE_KEY=
 
 The schema intentionally does not add RLS policies. API routes validate the user session, check workspace membership, and then call server-only DB modules.
 
-Step 2 also adds:
+API routes include:
 
 - `GET /api/health`: reports missing Supabase env vars with a developer-facing response.
 - `GET /api/workspaces`: example authenticated REST boundary that lists the caller's active workspaces from API/DB modules.
+- `GET /api/bots`: lists bots for the active workspace and returns plan capacity.
+- `POST /api/bots`: creates a bot after Zod validation and plan-limit checks.
+- `GET /api/bots/[botId]`, `PATCH /api/bots/[botId]`, `DELETE /api/bots/[botId]`: reads, updates, and deletes workspace-scoped bots.
 
 The RAG schema uses `document_chunks.embedding vector(768)`, matching the MVP choice to request 768-dimensional Google Gemini embeddings.
 
@@ -88,6 +91,17 @@ Manual auth checks:
 - Use the logout button, then confirm `/app` redirects back to `/login`.
 - Refresh `/app` after logging in and confirm the session persists.
 
+## Bot Management
+
+Step 4 wires `/app/bots`, `/app/bots/new`, and `/app/bots/[botId]` to the bot API. Bot forms support name, description/purpose, support tone, public widget availability, and fallback copy. The free-plan bot limit is enforced in the UI and in `POST /api/bots`.
+
+Manual bot checks:
+
+- Create a bot from `/app/bots/new` and confirm it appears immediately at `/app/bots`.
+- Edit its settings at `/app/bots/[botId]`, refresh, and confirm the values persisted.
+- On the free plan, confirm creating a second bot is blocked and points to Billing.
+- Delete the bot from its settings page and confirm the list returns to the empty state.
+
 ## Implemented Routes
 
 - `/login`
@@ -103,6 +117,6 @@ Manual auth checks:
 
 ## Notes For Next Agents
 
-- Product persistence, document upload, RAG, billing, and the real widget loader are intentionally not implemented yet.
+- Document upload, RAG, billing checkout, and the real widget loader are intentionally not implemented yet.
 - Keep client components and Server Components away from Supabase/DB modules. Fetch app data through API routes.
-- The dashboard includes demo data so the app has a realistic product feel before the backend exists.
+- The dashboard uses live bot capacity, while document and message statistics remain demo data until later steps.
