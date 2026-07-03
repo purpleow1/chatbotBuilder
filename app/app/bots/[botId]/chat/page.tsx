@@ -1,66 +1,176 @@
-import { Send, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+import { ArrowLeft, CheckCircle2, CircleAlert, CircleDashed, FileText, MessageSquare, Radio } from "lucide-react";
+import { BotChatClient, type ChatReadinessItem } from "@/app/app/bots/[botId]/chat/bot-chat-client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { fetchInternalApi } from "@/lib/api/server-fetch";
+import type { BotRecord } from "@/lib/db/bots";
+import type { SourceDocumentRecord } from "@/lib/db/documents";
 
-const messages = [
-  {
-    role: "assistant",
-    content: "Hi, I am Acme Support. Ask me about setup, returns, or billing."
-  },
-  {
-    role: "user",
-    content: "Can customers return a product after two weeks?"
-  },
-  {
-    role: "assistant",
-    content: "Yes. The demo policy says customers can return products within 30 days when items are unused."
+type BotApiResponse = {
+  bot: BotRecord;
+};
+
+type DocumentsApiResponse = {
+  documents: SourceDocumentRecord[];
+};
+
+function buildReadiness(bot: BotRecord, documents: SourceDocumentRecord[]): ChatReadinessItem[] {
+  const readyDocuments = documents.filter((document) => document.status === "ready").length;
+  const hasDocuments = documents.length > 0;
+
+  return [
+    {
+      id: "documents",
+      label: "Documents uploaded",
+      description: hasDocuments ? `${documents.length} source${documents.length === 1 ? "" : "s"} connected` : "Upload at least one source file",
+      complete: hasDocuments
+    },
+    {
+      id: "ingestion",
+      label: "Ingestion ready",
+      description:
+        readyDocuments > 0
+          ? `${readyDocuments} ready source${readyDocuments === 1 ? "" : "s"} available for answers`
+          : "Wait for a source to finish processing",
+      complete: readyDocuments > 0
+    },
+    {
+      id: "widget",
+      label: "Widget enabled",
+      description: bot.public_widget_enabled ? "Public embed is switched on" : "Enable the public widget before embedding",
+      complete: bot.public_widget_enabled
+    }
+  ];
+}
+
+export default async function BotChatPage({ params }: { params: Promise<{ botId: string }> }) {
+  const { botId } = await params;
+  const [botResult, documentsResult] = await Promise.all([
+    fetchInternalApi<BotApiResponse>(`/api/bots/${botId}`),
+    fetchInternalApi<DocumentsApiResponse>(`/api/bots/${botId}/documents`)
+  ]);
+
+  if (!botResult.ok) {
+    if (botResult.status === 401) {
+      redirect(`/login?next=/app/bots/${botId}/chat`);
+    }
+
+    if (botResult.status === 404) {
+      notFound();
+    }
+
+    throw new Error(botResult.error.message);
   }
-];
 
-export default function BotChatPage() {
+  const bot = botResult.data.bot;
+  const documents = documentsResult.ok ? documentsResult.data.documents : [];
+  const readiness = buildReadiness(bot, documents);
+  const readyDocuments = documents.filter((document) => document.status === "ready");
+  const processingDocuments = documents.filter((document) => document.status === "queued" || document.status === "processing");
+  const failedDocuments = documents.filter((document) => document.status === "failed");
+
   return (
-    <div className="flex min-h-[calc(100vh-7rem)] flex-col gap-4">
-      <div>
-        <p className="text-sm font-medium text-primary">Test chat</p>
-        <h1 className="text-3xl font-semibold tracking-tight">Acme Support</h1>
-        <p className="mt-2 text-muted-foreground">Validate answers before publishing the widget.</p>
-      </div>
+    <div className="grid min-h-[calc(100vh-7rem)] gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <section className="flex min-h-[680px] flex-col gap-4">
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+          <div>
+            <Button variant="ghost" size="sm" asChild className="-ml-3 mb-2">
+              <Link href={`/app/bots/${bot.id}`}>
+                <ArrowLeft className="size-4" />
+                Settings
+              </Link>
+            </Button>
+            <p className="text-sm font-medium text-primary">Test chat</p>
+            <h1 className="text-3xl font-semibold tracking-tight">{bot.name}</h1>
+            <p className="mt-2 text-muted-foreground">Ask real questions before publishing the widget.</p>
+          </div>
+        </div>
 
-      <Card className="flex flex-1 flex-col">
-        <CardContent className="flex flex-1 flex-col gap-4 p-4">
-          <div className="flex-1 space-y-4 overflow-y-auto rounded-md bg-muted/40 p-4">
-            {messages.map((message, index) => (
-              <div
-                key={`${message.role}-${index}`}
-                className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`max-w-[78%] rounded-md px-4 py-3 text-sm ${
-                    message.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "border bg-card text-card-foreground"
-                  }`}
+        {documentsResult.ok ? null : (
+          <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            Knowledge readiness could not be loaded: {documentsResult.error.message}
+          </div>
+        )}
+
+        <BotChatClient
+          botId={bot.id}
+          botName={bot.name}
+          fallbackMessage={bot.fallback_message}
+          readyDocumentCount={readyDocuments.length}
+        />
+      </section>
+
+      <aside className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle2 className="size-5" />
+              Readiness
+            </CardTitle>
+            <CardDescription>Compact setup checks for reliable answers.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {readiness.map((item) => (
+              <div key={item.id} className="flex gap-3 rounded-md border bg-muted/35 p-3">
+                <span
+                  className={
+                    item.complete
+                      ? "mt-0.5 text-emerald-600"
+                      : "mt-0.5 text-muted-foreground"
+                  }
                 >
-                  {message.role === "assistant" && (
-                    <div className="mb-2 flex items-center gap-2 text-xs font-medium text-primary">
-                      <Sparkles className="size-3.5" />
-                      Grounded answer
-                    </div>
-                  )}
-                  {message.content}
+                  {item.complete ? <CheckCircle2 className="size-4" /> : <CircleDashed className="size-4" />}
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">{item.label}</p>
+                  <p className="text-xs leading-5 text-muted-foreground">{item.description}</p>
                 </div>
               </div>
             ))}
-          </div>
-          <form className="flex gap-2">
-            <Input placeholder="Ask a question from your uploaded docs..." />
-            <Button type="button" size="icon" aria-label="Send message">
-              <Send className="size-4" />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="size-5" />
+              Sources
+            </CardTitle>
+            <CardDescription>The chat API searches ready sources first.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div className="flex items-center justify-between rounded-md border bg-muted/35 px-3 py-2">
+              <span className="flex items-center gap-2 text-muted-foreground">
+                <CheckCircle2 className="size-4 text-emerald-600" />
+                Ready
+              </span>
+              <span className="font-medium">{readyDocuments.length}</span>
+            </div>
+            <div className="flex items-center justify-between rounded-md border bg-muted/35 px-3 py-2">
+              <span className="flex items-center gap-2 text-muted-foreground">
+                <Radio className="size-4 text-blue-600" />
+                Processing
+              </span>
+              <span className="font-medium">{processingDocuments.length}</span>
+            </div>
+            <div className="flex items-center justify-between rounded-md border bg-muted/35 px-3 py-2">
+              <span className="flex items-center gap-2 text-muted-foreground">
+                <CircleAlert className="size-4 text-destructive" />
+                Failed
+              </span>
+              <span className="font-medium">{failedDocuments.length}</span>
+            </div>
+            <Button variant="outline" className="w-full" asChild>
+              <Link href={`/app/bots/${bot.id}`}>
+                <MessageSquare className="size-4" />
+                Manage sources
+              </Link>
             </Button>
-          </form>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </aside>
     </div>
   );
 }
