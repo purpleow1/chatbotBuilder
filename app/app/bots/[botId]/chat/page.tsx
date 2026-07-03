@@ -152,7 +152,9 @@ export default async function BotChatPage({ params }: { params: Promise<{ botId:
               <FileText className="size-5" />
               Sources
             </CardTitle>
-            <CardDescription>The chat API searches ready sources first.</CardDescription>
+            <CardDescription>
+              The chat API searches ready sources first. Sources are visible only in test chats and hidden in embedded widgets.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div className="flex items-center justify-between rounded-md border bg-muted/35 px-3 py-2">

@@ -423,7 +423,12 @@ export function BotChatClient({
               <p className="whitespace-pre-wrap">{message.content}</p>
               {message.citations.length > 0 ? (
                 <div className="mt-3 space-y-2 border-t pt-3">
-                  <p className="text-xs font-medium text-muted-foreground">Sources</p>
+                  <div className="space-y-1">
+                    <p className="text-xs font-medium text-muted-foreground">Sources</p>
+                    <p className="text-xs text-muted-foreground">
+                      Sources are visible only in test chats and hidden in embedded widgets.
+                    </p>
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     {message.citations.map((citation) => (
                       <span
