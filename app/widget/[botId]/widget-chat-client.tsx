@@ -46,6 +46,7 @@ type WidgetChatApiResponse = {
 
 type WidgetChatClientProps = {
   widget: PublicWidgetConfig;
+  className?: string;
 };
 
 function getVisitorId(botId: string) {
@@ -122,7 +123,7 @@ function getApiErrorMessage(payload: unknown, status: number) {
   return `Chat request failed with HTTP ${status}.`;
 }
 
-export function WidgetChatClient({ widget }: WidgetChatClientProps) {
+export function WidgetChatClient({ widget, className }: WidgetChatClientProps) {
   const { settings } = widget;
   const [visitorId, setVisitorId] = useState<string | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -233,7 +234,7 @@ export function WidgetChatClient({ widget }: WidgetChatClientProps) {
 
   return (
     <section
-      className="flex h-dvh min-h-[420px] w-full flex-col overflow-hidden bg-white text-slate-950"
+      className={cn("flex h-dvh min-h-[420px] w-full flex-col overflow-hidden bg-white text-slate-950", className)}
       style={themeStyle}
     >
       <header className="flex items-center gap-3 px-4 py-3 text-white" style={{ backgroundColor: settings.primaryColor }}>

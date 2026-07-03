@@ -1,23 +1,20 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, CreditCard, FileText, MessageSquare, Palette, Save, Settings, Trash2, Upload } from "lucide-react";
-import { deleteBot, deleteDocument, retryDocumentIngestion, updateBot } from "@/app/app/bots/actions";
-import { CopyWidgetScriptButton } from "@/app/app/bots/[botId]/copy-widget-script-button";
+import { ArrowLeft, CreditCard, FileText, MessageSquare, Trash2, Upload } from "lucide-react";
+import { deleteBot, deleteDocument, retryDocumentIngestion } from "@/app/app/bots/actions";
+import { BotSettingsEditor } from "@/app/app/bots/[botId]/bot-settings-editor";
 import { DocumentUploadForm } from "@/app/app/bots/[botId]/document-upload-form";
 import { ConfirmedSubmitButton } from "@/components/confirmed-submit-button";
 import { SubmitButton } from "@/components/submit-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { formatFileSize, MAX_SOURCE_DOCUMENT_BYTES, SUPPORTED_SOURCE_EXTENSIONS } from "@/lib/api/document-validation";
 import { fetchInternalApi } from "@/lib/api/server-fetch";
 import type { BotRecord } from "@/lib/db/bots";
 import type { AccountSubscription } from "@/lib/db/onboarding";
 import type { DocumentCapacity, SourceDocumentRecord } from "@/lib/db/documents";
 import { applyWidgetPlanLimits, normalizeWidgetSettings } from "@/lib/widget/settings";
-import { planAllowsCustomTheme } from "@/lib/plans";
+import { planAllowsCustomTheme, planRemovesBranding } from "@/lib/plans";
 
 type BotApiResponse = {
   bot: BotRecord;
@@ -127,6 +124,7 @@ export default async function BotDetailPage({
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? process.env.APP_URL ?? "http://localhost:3000";
   const embedSnippet = `<script src="${appUrl}/embed.js" data-bot-id="${bot.id}"></script>`;
   const acceptedExtensions = SUPPORTED_SOURCE_EXTENSIONS.join(",");
+  const showWidgetBranding = !planRemovesBranding(result.data.subscription.plan);
 
   return (
     <div className="space-y-6">
@@ -152,166 +150,13 @@ export default async function BotDetailPage({
 
       {notice ? <div className="rounded-md border bg-card px-4 py-3 text-sm text-muted-foreground">{notice}</div> : null}
 
-      <form action={updateBot} className="space-y-4">
-        <input type="hidden" name="botId" value={bot.id} />
-        <div className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="size-5" />
-                Profile
-              </CardTitle>
-              <CardDescription>These settings feed prompts and test chat behavior.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Bot name</Label>
-                <Input id="name" name="name" defaultValue={bot.name} required minLength={2} maxLength={80} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description / purpose</Label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  defaultValue={bot.description ?? ""}
-                  placeholder="Answer setup, billing, and product questions."
-                  maxLength={320}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="supportTone">Support tone</Label>
-                <Input
-                  id="supportTone"
-                  name="supportTone"
-                  defaultValue={bot.support_tone ?? ""}
-                  placeholder="Friendly and specific"
-                  maxLength={120}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="fallbackMessage">Fallback message</Label>
-                <Textarea
-                  id="fallbackMessage"
-                  name="fallbackMessage"
-                  defaultValue={bot.fallback_message ?? ""}
-                  placeholder="I do not know yet, but our team can help."
-                  maxLength={240}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Palette className="size-5" />
-                Widget
-              </CardTitle>
-              <CardDescription>Publish, style, preview, and embed this bot.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <label className="flex flex-col gap-3 rounded-md border bg-muted/45 p-4 sm:flex-row sm:items-center sm:justify-between">
-                <span>
-                  <span className="block font-medium">Public widget</span>
-                  <span className="block text-sm text-muted-foreground">Allow this bot to be embedded after setup.</span>
-                </span>
-                <input
-                  name="publicWidgetEnabled"
-                  type="checkbox"
-                  className="size-5 accent-primary"
-                  defaultChecked={bot.public_widget_enabled}
-                />
-              </label>
-
-              <div className="grid gap-4 rounded-md border bg-muted/35 p-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="widgetBotDisplayName">Widget bot name</Label>
-                  <Input
-                    id="widgetBotDisplayName"
-                    name="widgetBotDisplayName"
-                    defaultValue={widgetSettings.botDisplayName}
-                    maxLength={80}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="widgetBotAvatarInitials">Avatar initials</Label>
-                  <Input
-                    id="widgetBotAvatarInitials"
-                    name="widgetBotAvatarInitials"
-                    defaultValue={widgetSettings.botAvatarInitials}
-                    maxLength={3}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="widgetPrimaryColor">Primary color</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="widgetPrimaryColor"
-                      name="widgetPrimaryColor"
-                      type="color"
-                      defaultValue={widgetSettings.primaryColor}
-                      className="h-10 w-14 p-1"
-                      aria-label="Widget primary color"
-                      disabled={!canCustomizeWidgetTheme}
-                    />
-                    <Input
-                      name={!canCustomizeWidgetTheme ? "widgetPrimaryColor" : undefined}
-                      defaultValue={widgetSettings.primaryColor}
-                      readOnly
-                      aria-label="Selected widget primary color"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="widgetLauncherPosition">Launcher position</Label>
-                  <select
-                    id="widgetLauncherPosition"
-                    name="widgetLauncherPosition"
-                    defaultValue={widgetSettings.launcherPosition}
-                    disabled={!canCustomizeWidgetTheme}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  >
-                    <option value="bottom-right">Bottom right</option>
-                    <option value="bottom-left">Bottom left</option>
-                  </select>
-                  {!canCustomizeWidgetTheme ? (
-                    <input type="hidden" name="widgetLauncherPosition" value={widgetSettings.launcherPosition} />
-                  ) : null}
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="widgetWelcomeMessage">Welcome message</Label>
-                  <Textarea
-                    id="widgetWelcomeMessage"
-                    name="widgetWelcomeMessage"
-                    defaultValue={widgetSettings.welcomeMessage}
-                    maxLength={180}
-                  />
-                </div>
-              </div>
-
-              {!canCustomizeWidgetTheme ? (
-                <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
-                  Your {result.data.subscription.plan} plan uses the default widget color and launcher position. Upgrade to customize the theme.
-                </div>
-              ) : null}
-
-              <div className="rounded-md border bg-muted p-3">
-                <code className="break-all text-sm">{embedSnippet}</code>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <CopyWidgetScriptButton script={embedSnippet} />
-                <Button variant="outline" asChild>
-                  <Link href={`/widget/${bot.id}`}>Preview widget</Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        <SubmitButton pendingLabel="Saving...">
-          <Save className="size-4" />
-          Save changes
-        </SubmitButton>
-      </form>
+      <BotSettingsEditor
+        bot={bot}
+        widgetSettings={widgetSettings}
+        canCustomizeWidgetTheme={canCustomizeWidgetTheme}
+        embedSnippet={embedSnippet}
+        showWidgetBranding={showWidgetBranding}
+      />
 
       <Card>
         <CardHeader>
