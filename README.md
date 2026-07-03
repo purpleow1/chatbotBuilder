@@ -2,7 +2,7 @@
 
 Embeddable chatbot builder MVP. The app lets users create support bots, upload company knowledge, test answers in an in-app chat, and publish an embeddable widget.
 
-The current repo state implements **Steps 1-5** from [IMPLEMENTATION_PLAN.md](/Users/user/repos/chatbotBuilder/IMPLEMENTATION_PLAN.md): a Next.js app shell with product routes, shared UI primitives, Tailwind styling, TanStack Query provider, Supabase schema planning, server-only Supabase data access, Supabase email/password auth with first-login workspace onboarding, API-backed bot management, and source document upload management.
+The current repo state implements **Steps 1-6** from [IMPLEMENTATION_PLAN.md](/Users/user/repos/chatbotBuilder/IMPLEMENTATION_PLAN.md): a Next.js app shell with product routes, shared UI primitives, Tailwind styling, TanStack Query provider, Supabase schema planning, server-only Supabase data access, Supabase email/password auth with first-login workspace onboarding, API-backed bot management, source document upload management, and Gemini-powered ingestion with vector retrieval.
 
 ## Tech Stack
 
@@ -11,6 +11,8 @@ The current repo state implements **Steps 1-5** from [IMPLEMENTATION_PLAN.md](/U
 - TanStack Query
 - Supabase Postgres with pgvector schema migration
 - Server-only Supabase service-role client for API routes and DB modules
+- Google Gemini embeddings for document retrieval
+- mammoth and pdf-parse for DOCX/PDF text extraction
 - lucide-react icons
 
 ## Getting Started
@@ -56,6 +58,8 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 # or legacy fallback:
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
+GEMINI_API_KEY=
+GEMINI_EMBEDDING_MODEL=gemini-embedding-2
 ```
 
 `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` is used for Supabase Auth cookies. `NEXT_PUBLIC_SUPABASE_ANON_KEY` is supported as a legacy fallback and can later be reused for Realtime. CRUD data access should go through REST API routes backed by the service-role client, not through a browser Supabase data client.
@@ -70,10 +74,12 @@ API routes include:
 - `POST /api/bots`: creates a bot after Zod validation and plan-limit checks.
 - `GET /api/bots/[botId]`, `PATCH /api/bots/[botId]`, `DELETE /api/bots/[botId]`: reads, updates, and deletes workspace-scoped bots.
 - `GET /api/bots/[botId]/documents`: lists workspace-scoped source documents for a bot.
-- `POST /api/bots/[botId]/documents`: uploads `.txt`, `.md`, `.pdf`, `.docx`, and `.csv` files up to 10 MB into the private `source-documents` bucket and creates a queued document row.
+- `POST /api/bots/[botId]/documents`: uploads `.txt`, `.md`, `.pdf`, `.docx`, and `.csv` files up to 10 MB into the private `source-documents` bucket, extracts text, chunks it, generates embeddings, and stores searchable chunks.
+- `POST /api/bots/[botId]/documents/[documentId]/ingest`: retries ingestion for a queued or failed document.
 - `DELETE /api/bots/[botId]/documents/[documentId]`: deletes document chunks, metadata, and the stored file.
+- `GET /api/bots/[botId]/retrieval-test?query=...`: authenticated internal retrieval check that returns the top matching chunks for the active workspace.
 
-The RAG schema uses `document_chunks.embedding vector(768)`, matching the MVP choice to request 768-dimensional Google Gemini embeddings.
+The RAG schema uses `document_chunks.embedding vector(768)`, matching the MVP choice to request 768-dimensional Google Gemini embeddings from `gemini-embedding-2`.
 
 ## Auth And Workspace Onboarding
 
@@ -105,9 +111,9 @@ Manual bot checks:
 - On the free plan, confirm creating a second bot is blocked and points to Billing.
 - Delete the bot from its settings page and confirm the list returns to the empty state.
 
-## Document Uploads
+## Document Uploads And Ingestion
 
-Step 5 uses a private Supabase Storage bucket named `source-documents`. The server-only upload route writes files under `workspaceId/botId/` paths, stores document metadata in `documents`, records `document_uploaded` usage events, and leaves new documents in `queued` status for Step 6 ingestion.
+Step 5 uses a private Supabase Storage bucket named `source-documents`. Step 6 ingests uploaded files immediately in the server-only upload route. The route writes files under `workspaceId/botId/` paths, stores document metadata in `documents`, records `document_uploaded` usage events, downloads the private object with the service-role client, extracts readable text, chunks it, generates embeddings, stores rows in `document_chunks`, and marks the document `ready`.
 
 Supported source files:
 
@@ -119,8 +125,11 @@ Supported source files:
 
 The app and bucket both enforce a 10 MB file limit. Manual checks:
 
-- Upload a supported file from `/app/bots/[botId]` and confirm it appears in the knowledge list with `queued` status after refresh.
+- Add `GEMINI_API_KEY` to `.env.local` before testing ingestion.
+- Upload a supported file from `/app/bots/[botId]` and confirm it appears in the knowledge list with `ready` status after refresh.
 - Try an unsupported extension and confirm the route returns a useful validation error.
+- If ingestion fails, confirm the document shows `failed` status and use Retry after fixing the cause.
+- Call `/api/bots/[botId]/retrieval-test?query=your%20phrase` while logged in and confirm it returns chunks from that bot only.
 - Delete the document and confirm it disappears from the knowledge list.
 
 ## Implemented Routes
@@ -138,6 +147,6 @@ The app and bucket both enforce a 10 MB file limit. Manual checks:
 
 ## Notes For Next Agents
 
-- RAG ingestion, billing checkout, and the real widget loader are intentionally not implemented yet.
+- Chat completion, billing checkout, and the real widget loader are intentionally not implemented yet.
 - Keep client components and Server Components away from Supabase/DB modules. Fetch app data through API routes.
 - The dashboard uses live bot capacity, while document and message statistics remain demo data until later steps.

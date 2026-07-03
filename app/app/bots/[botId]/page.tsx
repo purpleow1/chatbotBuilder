@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Copy, FileText, MessageSquare, Palette, Save, Settings, Trash2, Upload } from "lucide-react";
-import { deleteBot, deleteDocument, updateBot, uploadDocument } from "@/app/app/bots/actions";
+import { deleteBot, deleteDocument, retryDocumentIngestion, updateBot, uploadDocument } from "@/app/app/bots/actions";
 import { SubmitButton } from "@/components/submit-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,8 +30,8 @@ function getNotice(searchParams: Record<string, string | string[] | undefined>) 
     return "Bot settings saved.";
   }
 
-  if (searchParams.documentUploaded) {
-    return "Document uploaded. It is queued for ingestion in Step 6.";
+  if (searchParams.documentIngested) {
+    return "Document ingested and ready for retrieval.";
   }
 
   if (searchParams.documentDeleted) {
@@ -269,14 +269,26 @@ export default async function BotDetailPage({
                     </p>
                     {document.error_message ? <p className="text-sm text-destructive">{document.error_message}</p> : null}
                   </div>
-                  <form action={deleteDocument}>
-                    <input type="hidden" name="botId" value={bot.id} />
-                    <input type="hidden" name="documentId" value={document.id} />
-                    <SubmitButton variant="outline" pendingLabel="Deleting...">
-                      <Trash2 className="size-4" />
-                      Delete
-                    </SubmitButton>
-                  </form>
+                  <div className="flex flex-wrap gap-2">
+                    {document.status === "failed" || document.status === "queued" ? (
+                      <form action={retryDocumentIngestion}>
+                        <input type="hidden" name="botId" value={bot.id} />
+                        <input type="hidden" name="documentId" value={document.id} />
+                        <SubmitButton variant="outline" pendingLabel="Retrying...">
+                          <Upload className="size-4" />
+                          Retry
+                        </SubmitButton>
+                      </form>
+                    ) : null}
+                    <form action={deleteDocument}>
+                      <input type="hidden" name="botId" value={bot.id} />
+                      <input type="hidden" name="documentId" value={document.id} />
+                      <SubmitButton variant="outline" pendingLabel="Deleting...">
+                        <Trash2 className="size-4" />
+                        Delete
+                      </SubmitButton>
+                    </form>
+                  </div>
                 </div>
               ))}
             </div>

@@ -114,7 +114,7 @@ export async function uploadDocument(formData: FormData) {
 
   revalidatePath("/app/bots");
   revalidatePath(`/app/bots/${botId}`);
-  redirect(`/app/bots/${botId}?documentUploaded=1`);
+  redirect(`/app/bots/${botId}?documentIngested=1`);
 }
 
 export async function deleteDocument(formData: FormData) {
@@ -140,4 +140,29 @@ export async function deleteDocument(formData: FormData) {
   revalidatePath("/app/bots");
   revalidatePath(`/app/bots/${botId}`);
   redirect(`/app/bots/${botId}?documentDeleted=1`);
+}
+
+export async function retryDocumentIngestion(formData: FormData) {
+  const botId = getText(formData, "botId");
+  const documentId = getText(formData, "documentId");
+
+  if (!botId) {
+    redirect("/app/bots?error=Missing%20bot%20id.");
+  }
+
+  if (!documentId) {
+    redirect(`/app/bots/${botId}?error=Missing%20document%20id.`);
+  }
+
+  const result = await fetchInternalApi<unknown>(`/api/bots/${botId}/documents/${documentId}/ingest`, {
+    method: "POST"
+  });
+
+  if (!result.ok) {
+    redirect(`/app/bots/${botId}?error=${errorParam(result.error.message)}`);
+  }
+
+  revalidatePath("/app/bots");
+  revalidatePath(`/app/bots/${botId}`);
+  redirect(`/app/bots/${botId}?documentIngested=1`);
 }

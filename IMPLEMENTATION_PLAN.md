@@ -56,6 +56,7 @@ Each step below should be executable by a separate agent. Before starting a step
 - Add or update tests for the behavior it touches when practical.
 - Update README/env docs if the step introduces setup or usage changes.
 - Run the relevant verification command before handing off.
+- If a dev server is useful for verification, start it only as needed and stop it before handing off. The project owner prefers to run long-lived dev servers manually in their own terminal.
 
 Recommended completion note from each agent:
 
@@ -255,6 +256,8 @@ Integration handoff to provide when complete:
 
 Dependency: Step 5
 
+Status: implemented in repo.
+
 Goal: uploaded documents are converted into searchable knowledge chunks.
 
 Implementation tasks:
@@ -276,10 +279,37 @@ What you can check:
 
 Integration handoff to provide when complete:
 
-- Google Gemini API key setup and required `GEMINI_API_KEY` env var.
-- Embedding model name and output dimension used by the migration.
-- Any retry/job execution setup needed for ingestion.
-- Manual retrieval test steps.
+- Implemented in repo:
+  - Added extraction, chunking, Gemini embedding, chunk storage, retry, and scoped retrieval code.
+  - Uploading a supported document now attempts ingestion immediately from `POST /api/bots/[botId]/documents`.
+  - Added `POST /api/bots/[botId]/documents/[documentId]/ingest` for retrying queued or failed ingestion.
+  - Added `GET /api/bots/[botId]/retrieval-test?query=...` for authenticated retrieval verification.
+  - Uses the existing `public.match_document_chunks` RPC and `document_chunks.embedding vector(768)` schema from the initial migration.
+  - Added `mammoth` for `.docx` extraction and `pdf-parse` for `.pdf` extraction.
+- Required before manual ingestion/retrieval testing:
+  - Create or use a Google AI Studio/Gemini API key and add `GEMINI_API_KEY` to `.env.local`.
+  - Optional override: set `GEMINI_EMBEDDING_MODEL=gemini-embedding-2`; this is the repo default.
+  - Ensure all Supabase migrations through Step 5 are applied, including the private `source-documents` bucket and the initial `match_document_chunks` RPC.
+- Embedding model and dimensions:
+  - Model: `gemini-embedding-2`.
+  - Output dimensionality: `768`, matching `document_chunks.embedding vector(768)`.
+  - Document embeddings are prefixed as `title: {fileName} | text: {chunk}` and query embeddings as `task: question answering | query: {query}`.
+- Retry/job execution setup:
+  - No external worker is required for the MVP. Ingestion runs synchronously during upload and through the retry API route.
+  - Failed ingestion marks the document `failed` with an error message visible in the bot detail page.
+  - Larger production deployments should move ingestion into a background queue before scaling past demo-sized documents.
+- Manual retrieval test steps:
+  - Upload a small `.txt` or `.md` file from `/app/bots/[botId]`.
+  - Confirm the document status becomes `ready`.
+  - Visit `/api/bots/[botId]/retrieval-test?query=some%20phrase%20from%20the%20document` while logged in.
+  - Confirm returned matches contain chunks from that bot and source document.
+- Verification completed:
+  - `npm run typecheck`
+  - `npm run lint`
+  - `npm run build`
+- Known limitations:
+  - Live ingestion could not be manually tested without configured Supabase Storage and `GEMINI_API_KEY`.
+  - The dev server was not left running after implementation.
 
 ## Step 7: Chat API With RAG
 

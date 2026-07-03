@@ -10,7 +10,7 @@ import type { DocumentStatus, Json, SubscriptionPlan } from "@/lib/db/database.t
 import { getBotForWorkspace } from "@/lib/db/bots";
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
 
-const documentColumns =
+export const documentColumns =
   "id, workspace_id, bot_id, uploaded_by, file_name, storage_path, mime_type, size_bytes, status, error_message, metadata, created_at, updated_at, processed_at";
 
 export type SourceDocumentRecord = {

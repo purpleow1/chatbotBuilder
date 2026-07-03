@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { apiErrorResponse, ApiError } from "@/lib/api/errors";
 import { applyAuthCookies, authenticateRequest } from "@/lib/db/auth";
 import { listDocumentsForBot, uploadDocumentForBot } from "@/lib/db/documents";
+import { ingestDocumentForBot } from "@/lib/db/knowledge";
 import { ensureAccountForUser } from "@/lib/db/onboarding";
 
 export const runtime = "nodejs";
@@ -41,7 +42,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       user.id,
       getUploadedFile(await request.formData())
     );
-    const response = NextResponse.json({ document }, { status: 201 });
+    const ingestedDocument = await ingestDocumentForBot(account.activeWorkspace.id, botId, document.id);
+    const response = NextResponse.json({ document: ingestedDocument }, { status: 201 });
 
     return applyAuthCookies(response, cookiesToSet);
   } catch (error) {
