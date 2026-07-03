@@ -94,6 +94,33 @@ export async function listDocumentsForBot(workspaceId: string, botId: string): P
   return data;
 }
 
+export async function getDocumentForBot(
+  workspaceId: string,
+  botId: string,
+  documentId: string
+): Promise<SourceDocumentRecord> {
+  await getBotForWorkspace(workspaceId, botId);
+
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("documents")
+    .select(documentColumns)
+    .eq("workspace_id", workspaceId)
+    .eq("bot_id", botId)
+    .eq("id", documentId)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    throw new ApiError(404, "Document not found.", "document_not_found");
+  }
+
+  return data;
+}
+
 export async function uploadDocumentForBot(
   workspaceId: string,
   botId: string,

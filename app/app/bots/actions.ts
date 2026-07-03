@@ -4,9 +4,14 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { fetchInternalApi } from "@/lib/api/server-fetch";
 import type { BotRecord } from "@/lib/db/bots";
+import type { SourceDocumentRecord } from "@/lib/db/documents";
 
 type BotResponse = {
   bot: BotRecord;
+};
+
+type DocumentResponse = {
+  document: SourceDocumentRecord;
 };
 
 function getText(formData: FormData, key: string) {
@@ -103,7 +108,7 @@ export async function uploadDocument(formData: FormData) {
     payload.set("file", file);
   }
 
-  const result = await fetchInternalApi<unknown>(`/api/bots/${botId}/documents`, {
+  const result = await fetchInternalApi<DocumentResponse>(`/api/bots/${botId}/documents`, {
     method: "POST",
     body: payload
   });
@@ -114,7 +119,9 @@ export async function uploadDocument(formData: FormData) {
 
   revalidatePath("/app/bots");
   revalidatePath(`/app/bots/${botId}`);
-  redirect(`/app/bots/${botId}?documentIngested=1`);
+  const uploadNotice = result.data.document.status === "ready" ? "documentIngested=1" : "documentUploaded=1";
+
+  redirect(`/app/bots/${botId}?${uploadNotice}`);
 }
 
 export async function deleteDocument(formData: FormData) {

@@ -34,6 +34,10 @@ function getNotice(searchParams: Record<string, string | string[] | undefined>) 
     return "Document ingested and ready for retrieval.";
   }
 
+  if (searchParams.documentUploaded) {
+    return "Document uploaded. Ingestion needs attention before retrieval.";
+  }
+
   if (searchParams.documentDeleted) {
     return "Document deleted.";
   }

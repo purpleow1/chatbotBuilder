@@ -98,17 +98,20 @@ export default async function BotsPage({
       ) : (
         <div className="grid gap-4">
           {bots.map((bot) => (
-            <Card key={bot.id}>
-              <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <Card key={bot.id} className="relative transition-colors hover:border-primary/50 hover:bg-muted/25">
+              <Link
+                href={`/app/bots/${bot.id}`}
+                aria-label={`Open ${bot.name}`}
+                className="absolute inset-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+              <CardContent className="pointer-events-none relative z-10 flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex gap-4">
                   <div className="flex size-11 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
                     <Bot className="size-5" />
                   </div>
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <Link href={`/app/bots/${bot.id}`} className="font-semibold hover:underline">
-                        {bot.name}
-                      </Link>
+                      <span className="font-semibold">{bot.name}</span>
                       <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
                         {formatStatus(bot.status)}
                       </span>
@@ -125,7 +128,7 @@ export default async function BotsPage({
                     </div>
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="pointer-events-auto flex gap-2">
                   <Button variant="outline" asChild>
                     <Link href={`/app/bots/${bot.id}/chat`}>
                       <MessageSquare className="size-4" />
@@ -161,4 +164,3 @@ export default async function BotsPage({
     </div>
   );
 }
-

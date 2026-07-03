@@ -1,8 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { apiErrorResponse, ApiError } from "@/lib/api/errors";
 import { applyAuthCookies, authenticateRequest } from "@/lib/db/auth";
-import { listDocumentsForBot, uploadDocumentForBot } from "@/lib/db/documents";
-import { ingestDocumentForBot } from "@/lib/db/knowledge";
+import { getDocumentForBot, listDocumentsForBot, uploadDocumentForBot } from "@/lib/db/documents";
 import { ensureAccountForUser } from "@/lib/db/onboarding";
 
 export const runtime = "nodejs";
@@ -42,8 +41,17 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       user.id,
       getUploadedFile(await request.formData())
     );
-    const ingestedDocument = await ingestDocumentForBot(account.activeWorkspace.id, botId, document.id);
-    const response = NextResponse.json({ document: ingestedDocument }, { status: 201 });
+    const { ingestDocumentForBot } = await import("@/lib/db/knowledge");
+
+    let responseDocument = document;
+
+    try {
+      responseDocument = await ingestDocumentForBot(account.activeWorkspace.id, botId, document.id);
+    } catch {
+      responseDocument = await getDocumentForBot(account.activeWorkspace.id, botId, document.id);
+    }
+
+    const response = NextResponse.json({ document: responseDocument }, { status: 201 });
 
     return applyAuthCookies(response, cookiesToSet);
   } catch (error) {
