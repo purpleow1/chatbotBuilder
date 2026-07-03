@@ -25,7 +25,7 @@ const botMutationShape = {
   description: optionalText(320, "Description"),
   supportTone: optionalText(120, "Support tone"),
   fallbackMessage: optionalText(240, "Fallback message"),
-  sourceReferencesEnabled: z.boolean().default(true),
+  sourceReferencesEnabled: z.boolean().default(false),
   publicWidgetEnabled: z.boolean().default(false),
   widgetSettings: widgetSettingsSchema.optional()
 };

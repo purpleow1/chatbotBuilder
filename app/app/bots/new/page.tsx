@@ -116,7 +116,7 @@ export default async function NewBotPage({
                     Let the bot reference source filenames in answers when helpful.
                   </span>
                 </span>
-                <input name="sourceReferencesEnabled" type="checkbox" className="size-5 accent-primary" defaultChecked />
+                <input name="sourceReferencesEnabled" type="checkbox" className="size-5 accent-primary" />
               </label>
             </CardContent>
           </Card>
