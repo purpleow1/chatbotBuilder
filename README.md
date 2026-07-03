@@ -1,35 +1,64 @@
-# HelpDock AI Chatbot Builder
+# HelpDock AI
 
-Embeddable chatbot builder MVP. The app lets users create support bots, upload company knowledge, test answers in an in-app chat, and publish an embeddable widget.
+Embeddable chatbot builder MVP: upload company knowledge, turn it into a grounded AI support bot, test it in a ChatGPT-like in-app chat, and publish the same bot as an embeddable website widget.
 
-The current repo state implements **Steps 1-7** from [IMPLEMENTATION_PLAN.md](/Users/user/repos/chatbotBuilder/IMPLEMENTATION_PLAN.md): a Next.js app shell with product routes, shared UI primitives, Tailwind styling, TanStack Query provider, Supabase schema planning, server-only Supabase data access, Supabase email/password auth with first-login workspace onboarding, API-backed bot management, source document upload management, Gemini-powered ingestion with vector retrieval, and a grounded RAG chat API.
+The app is built as a real SaaS product MVP: authenticated workspaces, bot management, source document ingestion, vector search, chat history, widget install flow, usage limits, and billing/pricing surfaces.
 
-## Tech Stack
+> Live demo: https://chatbot-builder-delta-ruby.vercel.app/
 
-- Next.js App Router, React, TypeScript
-- Tailwind CSS with shadcn/ui-compatible primitives
-- TanStack Query
-- Supabase Postgres with pgvector schema migration
-- Server-only Supabase service-role client for API routes and DB modules
-- Google Gemini embeddings for document retrieval and grounded chat responses
-- mammoth and pdf-parse for DOCX/PDF text extraction
-- lucide-react icons
+## Getting started
 
-## Getting Started
+### Prerequisites
 
-Install dependencies:
+- Node.js 18+
+- A [Supabase](https://supabase.com) project
+- A [Google Gemini API key](https://aistudio.google.com/apikey)
+- Optional: Stripe test-mode keys for real checkout testing
+
+### 1. Install
 
 ```bash
 npm install
 ```
 
-Copy environment defaults:
+### 2. Configure environment variables
 
 ```bash
 cp .env.example .env.local
 ```
 
-Start the development server:
+Fill in `.env.local`:
+
+| Variable | Required | Notes |
+| --- | --- | --- |
+| `APP_URL` | Yes | Local default: `http://localhost:3000` |
+| `SUPABASE_URL` | Yes | Supabase project URL |
+| `SUPABASE_PUBLISHABLE_KEY` | Yes | Used by Supabase Auth cookie helpers |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Secret server-only key for API and DB modules |
+| `GEMINI_API_KEY` | Yes | Used for embeddings and chat responses |
+| `GEMINI_EMBEDDING_MODEL` | No | Defaults to `gemini-embedding-2` |
+| `GEMINI_CHAT_MODEL` | No | Defaults to `gemini-3.1-flash-lite` |
+| `STRIPE_SECRET_KEY` | No | Enables Stripe checkout when configured |
+| `STRIPE_PUBLISHABLE_KEY` | No | Used by billing UI when Stripe is configured |
+| `STRIPE_WEBHOOK_SECRET` | No | Required for Stripe webhook verification |
+| `STRIPE_PRO_PRICE_ID` | No | Stripe test price for Pro plan |
+| `STRIPE_BUSINESS_PRICE_ID` | No | Stripe test price for Business plan |
+
+### 3. Set up Supabase
+
+1. Apply every migration in `supabase/migrations/` in filename order.
+2. Confirm the `vector` extension is enabled.
+3. Confirm the private Storage bucket `source-documents` exists. Migration `202607020003_create_source_documents_bucket.sql` creates it.
+4. Authentication -> Providers: enable Email.
+5. Authentication -> URL Configuration:
+   - Site URL: `http://localhost:3000`
+   - Redirect URLs:
+     - `http://localhost:3000/auth/confirm`
+     - `http://localhost:3000/app`
+
+For quick local testing, disable email confirmations. If confirmations stay enabled, configure the signup email template to redirect through `/auth/confirm`.
+
+### 4. Run
 
 ```bash
 npm run dev
@@ -37,116 +66,108 @@ npm run dev
 
 Open [http://localhost:3000/app](http://localhost:3000/app).
 
-## Useful Commands
+Useful local URLs:
 
-```bash
-npm run dev
-npm run lint
-npm run typecheck
-npm run build
+| URL | Purpose |
+| --- | --- |
+| `/signup` | Create an account and workspace |
+| `/login` | Sign in |
+| `/app` | Product dashboard |
+| `/app/bots` | Bot list |
+| `/app/bots/new` | Create a bot |
+| `/app/billing` | Plans, usage, and upgrade flow |
+| `/api/health` | Supabase configuration check |
+
+## Features
+
+- **Workspace onboarding** - new users get a workspace, owner membership, and free subscription on first app entry.
+- **Bot management** - create, edit, delete, and configure support bots with purpose, tone, fallback copy, and widget availability.
+- **Document upload + RAG** - upload `.txt`, `.md`, `.pdf`, `.docx`, and `.csv` files; the app extracts text, chunks it, embeds it with Gemini, and stores vectors in Supabase Postgres.
+- **In-app chatbot** - test each bot in a ChatGPT-like interface, continue previous conversations, and view source citations.
+- **Embeddable widget** - enable a public widget, copy the install snippet, and let external site visitors chat with the same bot.
+- **Conversation continuity** - app conversations are workspace-scoped; widget conversations are visitor-scoped.
+- **Pricing and gates** - Free, Pro, and Business plans gate bot count, document count, monthly messages, widget branding, and theme features.
+- **Billing flow** - Stripe checkout is used when test keys are configured; otherwise the app supports a mock upgrade flow for demos.
+- **Usage tracking** - message, assistant response, document upload, ingestion, embedding, and widget events are stored in `usage_events`.
+- **Product polish** - empty states, loading states, destructive-action confirmations, responsive app shell, and clear upgrade prompts.
+
+## Pricing
+
+| Plan | Limits | Positioning |
+| --- | --- | --- |
+| Free | 1 bot, 5 documents, 100 monthly messages | Try the product with a small support bot |
+| Pro | 10 bots, 100 documents, 2,000 monthly messages | Remove widget branding and use custom widget theme settings |
+| Business | 50 bots, 500 documents, 10,000 monthly messages | Higher-volume workspace with priority-style limits for demos |
+
+Plan limits are enforced in API routes as well as the UI.
+
+## Tech stack
+
+| Layer | Choice |
+| --- | --- |
+| Framework | Next.js App Router, React, TypeScript |
+| UI | Tailwind CSS, shadcn/ui-compatible primitives, lucide-react |
+| Data fetching | TanStack Query and API-backed server fetch helpers |
+| Server | Next.js REST route handlers |
+| Database | Supabase Postgres with pgvector |
+| Storage | Supabase Storage private bucket for source documents |
+| Auth | Supabase Auth with `@supabase/ssr` |
+| AI | Google Gemini embeddings and chat completion |
+| Billing | Stripe test mode with mock fallback |
+| Deployment | Vercel + Supabase |
+
+## Architecture
+
+The project keeps client code, REST API, and database access separate:
+
+```text
+Client components / Server Components
+  -> fetch API routes only
+Next.js REST API routes
+  -> validate input, authenticate, check workspace access
+DB modules in lib/db/*
+  -> use server-only Supabase service-role client
+Supabase Postgres / Storage / Auth
 ```
 
-## Supabase Setup
+Rules followed by the app:
 
-Step 2 adds the initial SQL migration at [supabase/migrations/202607020001_initial_schema.sql](/Users/user/repos/chatbotBuilder/supabase/migrations/202607020001_initial_schema.sql). Step 3 adds service-role grants at [supabase/migrations/202607020002_grant_service_role_access.sql](/Users/user/repos/chatbotBuilder/supabase/migrations/202607020002_grant_service_role_access.sql). Step 5 adds the private Storage bucket at [supabase/migrations/202607020003_create_source_documents_bucket.sql](/Users/user/repos/chatbotBuilder/supabase/migrations/202607020003_create_source_documents_bucket.sql). Apply all migrations to a Supabase project with the SQL editor or Supabase CLI before wiring authenticated app flows.
+- Components do not call Supabase tables directly.
+- Server Components fetch app data from API routes through `fetchInternalApi()`.
+- Supabase CRUD access is isolated in server-only modules.
+- No public Supabase data client is used for application CRUD.
+- RLS is not required for MVP CRUD access; API routes enforce authorization and workspace scoping.
+- Secret keys are never exposed with `NEXT_PUBLIC_`.
 
-Required environment variables:
+## API endpoints
 
-```bash
-APP_URL=http://localhost:3000
-SUPABASE_URL=
-SUPABASE_PUBLISHABLE_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-GEMINI_API_KEY=
-GEMINI_EMBEDDING_MODEL=gemini-embedding-2
-GEMINI_CHAT_MODEL=gemini-3.1-flash-lite
-```
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| `GET` | `/api/health` | Validate Supabase environment and service-role database access |
+| `GET` | `/api/account` | Load or create the signed-in user's account, workspace, and subscription |
+| `GET` | `/api/workspaces` | List workspaces available to the signed-in user |
+| `GET` | `/api/bots` | List active-workspace bots and plan capacity |
+| `POST` | `/api/bots` | Create a bot with Zod validation and plan-limit checks |
+| `GET` | `/api/bots/[botId]` | Read one workspace-scoped bot |
+| `PATCH` | `/api/bots/[botId]` | Update bot settings |
+| `DELETE` | `/api/bots/[botId]` | Delete a bot |
+| `GET` | `/api/bots/[botId]/documents` | List source documents for a bot |
+| `POST` | `/api/bots/[botId]/documents` | Upload, extract, chunk, embed, and store a document |
+| `DELETE` | `/api/bots/[botId]/documents/[documentId]` | Delete a document, chunks, and stored file |
+| `POST` | `/api/bots/[botId]/documents/[documentId]/ingest` | Retry queued or failed ingestion |
+| `GET` | `/api/bots/[botId]/retrieval-test?query=...` | Test scoped vector retrieval |
+| `GET` | `/api/chat?botId=...` | List in-app conversations for a bot |
+| `GET` | `/api/chat?botId=...&conversationId=...` | Load one conversation and its messages |
+| `POST` | `/api/chat` | Create an authenticated RAG chat turn |
+| `GET` | `/api/widget/[botId]` | Return public widget configuration |
+| `GET` | `/api/widget/[botId]/chat` | Reload a visitor widget conversation |
+| `POST` | `/api/widget/[botId]/chat` | Create a public widget chat turn |
+| `GET` | `/embed.js` | Serve the embeddable widget loader |
+| `GET` | `/api/billing` | Read plan and usage |
+| `POST` | `/api/billing` | Start Stripe checkout or mock-upgrade |
+| `POST` | `/api/stripe/webhook` | Handle Stripe subscription webhooks |
 
-`SUPABASE_PUBLISHABLE_KEY` is used by server-side Supabase Auth cookie helpers. Use the current `sb_publishable_...` key from Supabase instead of the legacy anon key. CRUD data access should go through REST API routes backed by the service-role client, not through a browser Supabase data client.
-
-Optional Stripe variables for the later billing step:
-
-```bash
-STRIPE_SECRET_KEY=
-STRIPE_PUBLISHABLE_KEY=
-STRIPE_WEBHOOK_SECRET=
-```
-
-The schema intentionally does not add RLS policies. API routes validate the user session, check workspace membership, and then call server-only DB modules.
-
-API routes include:
-
-- `GET /api/health`: reports missing Supabase env vars with a developer-facing response.
-- `GET /api/workspaces`: example authenticated REST boundary that lists the caller's active workspaces from API/DB modules.
-- `GET /api/bots`: lists bots for the active workspace and returns plan capacity.
-- `POST /api/bots`: creates a bot after Zod validation and plan-limit checks.
-- `GET /api/bots/[botId]`, `PATCH /api/bots/[botId]`, `DELETE /api/bots/[botId]`: reads, updates, and deletes workspace-scoped bots.
-- `GET /api/bots/[botId]/documents`: lists workspace-scoped source documents for a bot.
-- `POST /api/bots/[botId]/documents`: uploads `.txt`, `.md`, `.pdf`, `.docx`, and `.csv` files up to 10 MB into the private `source-documents` bucket, extracts text, chunks it, generates embeddings, and stores searchable chunks.
-- `POST /api/bots/[botId]/documents/[documentId]/ingest`: retries ingestion for a queued or failed document.
-- `DELETE /api/bots/[botId]/documents/[documentId]`: deletes document chunks, metadata, and the stored file.
-- `GET /api/bots/[botId]/retrieval-test?query=...`: authenticated internal retrieval check that returns the top matching chunks for the active workspace.
-- `GET /api/chat?botId=...&conversationId=...`: authenticated conversation reload endpoint that returns persisted messages for a bot-scoped conversation.
-- `POST /api/chat`: authenticated RAG chat endpoint. It accepts `botId`, optional `conversationId`, and `message.parts`, retrieves bot-scoped chunks, generates a grounded Gemini answer, persists the user and assistant messages, returns citations, and records usage events.
-
-The RAG schema uses `document_chunks.embedding vector(768)`, matching the MVP choice to request 768-dimensional Google Gemini embeddings from `gemini-embedding-2`.
-
-## Auth And Workspace Onboarding
-
-Supabase Auth email/password is wired through `@supabase/ssr` cookie sessions. The `/app` route group is protected by middleware, `/login` and `/signup` submit through server actions, and `GET /api/account` creates the mirrored `users`, default `workspaces`, owner `workspace_members`, and free `subscriptions` rows the first time an authenticated user enters the app.
-
-Supabase dashboard settings to verify:
-
-- Authentication > Providers: enable Email.
-- Authentication > URL Configuration: set Site URL to `http://localhost:3000` locally and add your deployed URL later.
-- Redirect URLs: add `http://localhost:3000/auth/confirm` and `http://localhost:3000/app`.
-- For immediate local MVP testing, disable email confirmations. If confirmations stay enabled, update the Confirm signup email template to send users to `/auth/confirm` with a token hash, or use Supabase's PKCE/code confirmation redirect.
-
-Manual auth checks:
-
-- Open `/api/health` and confirm service-role database access is working.
-- Visit `/signup`, create an account, and confirm that `/app` shows your workspace name in the header.
-- Visit `/api/workspaces` while logged in and confirm it returns only your workspace.
-- Use the logout button, then confirm `/app` redirects back to `/login`.
-- Refresh `/app` after logging in and confirm the session persists.
-
-## Bot Management
-
-Step 4 wires `/app/bots`, `/app/bots/new`, and `/app/bots/[botId]` to the bot API. Bot forms support name, description/purpose, support tone, public widget availability, and fallback copy. The free-plan bot limit is enforced in the UI and in `POST /api/bots`.
-
-Manual bot checks:
-
-- Create a bot from `/app/bots/new` and confirm it appears immediately at `/app/bots`.
-- Edit its settings at `/app/bots/[botId]`, refresh, and confirm the values persisted.
-- On the free plan, confirm creating a second bot is blocked and points to Billing.
-- Delete the bot from its settings page and confirm the list returns to the empty state.
-
-## Document Uploads And Ingestion
-
-Step 5 uses a private Supabase Storage bucket named `source-documents`. Step 6 ingests uploaded files immediately in the server-only upload route. The route writes files under `workspaceId/botId/` paths, stores document metadata in `documents`, records `document_uploaded` usage events, downloads the private object with the service-role client, extracts readable text, chunks it, generates embeddings, stores rows in `document_chunks`, and marks the document `ready`.
-
-Supported source files:
-
-- `.txt`
-- `.md`
-- `.pdf`
-- `.docx`
-- `.csv`
-
-The app and bucket both enforce a 10 MB file limit. Manual checks:
-
-- Add `GEMINI_API_KEY` to `.env.local` before testing ingestion.
-- Upload a supported file from `/app/bots/[botId]` and confirm it appears in the knowledge list with `ready` status after refresh.
-- Try an unsupported extension and confirm the route returns a useful validation error.
-- If ingestion fails, confirm the document shows `failed` status and use Retry after fixing the cause.
-- Call `/api/bots/[botId]/retrieval-test?query=your%20phrase` while logged in and confirm it returns chunks from that bot only.
-- Delete the document and confirm it disappears from the knowledge list.
-
-## Chat API
-
-Step 7 adds `/api/chat` for authenticated in-app chat turns. The route only works for bots in the caller's active workspace, stores structured message parts as the canonical payload in `messages.parts`, writes source citations to the assistant message, and increments `message_sent` plus `assistant_response` usage events.
-
-Example request:
+### Example chat request
 
 ```json
 {
@@ -156,47 +177,90 @@ Example request:
     "parts": [
       {
         "type": "text",
-        "text": "What does the refund policy say?"
+        "text": "What does our refund policy say?"
       }
     ]
   }
 }
 ```
 
-Omit `conversationId` to start a new conversation. File parts can be persisted for future UI work, but Step 7 uses text parts for retrieval and answer generation.
+Omit `conversationId` to start a new conversation.
 
-Gemini chat configuration:
+## Database design
 
-- Default model: `gemini-3.1-flash-lite`
-- Override env var: `GEMINI_CHAT_MODEL`
-- Generation settings: temperature `0.2`, top-p `0.8`, max output tokens `900`
-- Safety settings: medium-and-above blocking for harassment, hate speech, sexual content, and dangerous content
+Postgres lives in Supabase. Full SQL is in `supabase/migrations/`.
 
-Manual chat checks:
+| Table | Purpose |
+| --- | --- |
+| `users` | App profile mirror of `auth.users` |
+| `workspaces` | Workspace boundary for product data |
+| `workspace_members` | User roles and workspace membership |
+| `bots` | Chatbot settings and widget configuration |
+| `documents` | Uploaded source file metadata and ingestion status |
+| `document_chunks` | Searchable text chunks with `vector(768)` embeddings |
+| `conversations` | In-app and widget conversation metadata |
+| `messages` | Ordered messages with structured parts, text, metadata, and citations |
+| `subscriptions` | Plan, billing provider, and feature limits |
+| `usage_events` | Usage ledger for billing and limits |
 
-- Add `GEMINI_API_KEY` to `.env.local` before testing.
-- Upload and ingest a small source document until it shows `ready`.
-- Send `POST /api/chat` with a question answerable from the document and confirm the response includes an answer and citations.
-- Send a question unrelated to uploaded knowledge and confirm the response uses the bot fallback instead of inventing an answer.
-- Reuse the returned `conversation.id` in another request and confirm messages are added to the same conversation.
-- Call `GET /api/chat?botId=...&conversationId=...` and confirm it returns the persisted user and assistant messages.
+Design notes:
 
-## Implemented Routes
+- Workspace and bot IDs are denormalized onto hot tables for simple scoped queries.
+- `messages.parts` is `jsonb`, matching the structured chat payload and allowing future multimodal parts.
+- `document_chunks.embedding` uses pgvector HNSW cosine search.
+- `match_document_chunks()` performs workspace- and bot-scoped retrieval over ready documents.
+- Cascading foreign keys clean relational rows; API code cleans related Storage objects.
 
-- `/login`
-- `/signup`
-- `/auth/confirm`
-- `/app`
-- `/app/bots`
-- `/app/bots/new`
-- `/app/bots/[botId]`
-- `/app/bots/[botId]/chat`
-- `/app/billing`
-- `/widget/[botId]`
+## Demo flow
 
-## Notes For Next Agents
+1. Sign up and create a workspace.
+2. Create a bot from `/app/bots/new`.
+3. Upload a company FAQ, policy, or support document on the bot detail page.
+4. Wait for the document to reach `ready`.
+5. Open the bot chat page and ask a document-specific question.
+6. Confirm the answer is grounded and includes citations.
+7. Continue or reopen a previous conversation.
+8. Enable the widget, copy the snippet, and open `/widget/[botId]`.
+9. Ask the same bot a question from the widget.
+10. Visit `/app/billing` and test plan limits or mock upgrade.
 
-- The Step 8 in-app chat UI should consume `/api/chat`; the current `/app/bots/[botId]/chat` page is still a static placeholder.
-- Billing checkout and the real widget loader are intentionally not implemented yet.
-- Keep client components and Server Components away from Supabase/DB modules. Fetch app data through API routes.
-- The dashboard uses live bot capacity, while document and message statistics remain demo data until later steps.
+## Deployment
+
+### Vercel
+
+1. Push the repo to GitHub.
+2. Import it in Vercel as a Next.js project.
+3. Add production and preview environment variables.
+4. Deploy.
+5. In Supabase Auth, add deployed redirect URLs:
+
+```text
+https://your-app.vercel.app/auth/confirm
+https://your-app.vercel.app/app
+```
+
+### Stripe test mode
+
+Stripe is optional for local demo use. When Stripe variables are missing, billing falls back to mock upgrades. To test real checkout:
+
+1. Create Pro and Business test prices in Stripe.
+2. Add `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_PRO_PRICE_ID`, and `STRIPE_BUSINESS_PRICE_ID`.
+3. Add `STRIPE_WEBHOOK_SECRET` for the deployed webhook endpoint.
+4. Point Stripe webhooks to `/api/stripe/webhook`.
+
+## Useful commands
+
+```bash
+npm run dev
+npm run lint
+npm run typecheck
+npm run build
+```
+
+## Notes
+
+- The app is focused on the product app; no marketing landing page is required for this submission.
+- Chat responses are returned as completed assistant turns in the current API implementation.
+- Ingestion runs synchronously during upload or retry, which is appropriate for the demo scope.
+- For larger production usage, ingestion should move to a background queue.
+
