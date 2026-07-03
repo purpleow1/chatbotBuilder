@@ -152,8 +152,10 @@ export async function uploadDocumentForBot(
   const safeFileName = sanitizeFileName(file.name) || "source-document";
   const storagePath = `${workspaceId}/${botId}/${crypto.randomUUID()}-${safeFileName}`;
   const supabase = getSupabaseServiceClient();
-  const { error: uploadError } = await supabase.storage.from(SOURCE_DOCUMENTS_BUCKET).upload(storagePath, file, {
-    contentType: getSourceMimeType(file.name, file.type || undefined),
+  const mimeType = getSourceMimeType(file.name, file.type || undefined);
+  const fileBuffer = Buffer.from(await file.arrayBuffer());
+  const { error: uploadError } = await supabase.storage.from(SOURCE_DOCUMENTS_BUCKET).upload(storagePath, fileBuffer, {
+    contentType: mimeType,
     upsert: false
   });
 
@@ -169,7 +171,7 @@ export async function uploadDocumentForBot(
       uploaded_by: userId,
       file_name: file.name,
       storage_path: storagePath,
-      mime_type: getSourceMimeType(file.name, file.type || undefined),
+      mime_type: mimeType,
       size_bytes: file.size,
       status: "queued",
       metadata: {

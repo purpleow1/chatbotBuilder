@@ -1,0 +1,11 @@
+HelpDock AI Refund Policy
+
+Monthly subscriptions can be cancelled at any time. When a customer cancels, access remains active until the end of the current billing period.
+
+Refunds are available within 14 days of the first paid subscription charge if the workspace has used fewer than 200 assistant messages.
+
+Refunds are not available for renewal charges after the first billing period.
+
+Business plan customers may request invoice adjustments by contacting billing@helpdock.example.
+
+The standard support response time is 2 business days for Free users, 1 business day for Pro users, and 4 business hours for Business users.
