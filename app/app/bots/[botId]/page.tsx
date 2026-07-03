@@ -105,12 +105,9 @@ export default async function BotDetailPage({
     throw new Error(result.error.message);
   }
 
-  if (!documentsResult.ok) {
-    throw new Error(documentsResult.error.message);
-  }
-
   const { bot } = result.data;
-  const { documents } = documentsResult.data;
+  const documents = documentsResult.ok ? documentsResult.data.documents : [];
+  const documentsError = documentsResult.ok ? null : documentsResult.error.message;
   const notice = getNotice(query);
   const embedSnippet = `<script src="${process.env.APP_URL ?? "http://localhost:3000"}/embed.js" data-bot-id="${bot.id}"></script>`;
   const acceptedExtensions = SUPPORTED_SOURCE_EXTENSIONS.join(",");
@@ -237,6 +234,12 @@ export default async function BotDetailPage({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
+          {documentsError ? (
+            <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              Knowledge sources could not be loaded: {documentsError}
+            </div>
+          ) : null}
+
           <form action={uploadDocument} className="grid gap-3 rounded-md border bg-muted/35 p-4 md:grid-cols-[1fr_auto]">
             <input type="hidden" name="botId" value={bot.id} />
             <div className="space-y-2">

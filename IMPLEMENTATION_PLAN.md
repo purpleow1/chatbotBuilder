@@ -18,10 +18,8 @@ This plan assumes we can skip the marketing landing page and focus on the produc
 
 ## Architecture Requirements
 
-- Keep client code, REST API routes, and DB access modules separate.
-- Fetch application data from API routes only. Do not call Supabase or DB helpers from components, including Server Components.
-- Access Supabase from server-side API/DB modules with the service account key only.
-- Do not use a public Supabase data client or RLS for CRUD access. Supabase Realtime may use a public client when needed because browser Realtime requires it.
+- Follow the durable project architecture rules in [.cursor/rules/project.mdc](.cursor/rules/project.mdc).
+- In short: keep components, API routes, and DB modules separate; fetch app data through API routes; and keep CRUD Supabase access server-only.
 
 ## Product Scope
 
@@ -48,43 +46,11 @@ Billing can use Stripe test checkout when env vars exist and a mock upgrade path
 
 ## Agent Working Contract
 
-Each step below should be executable by a separate agent. Before starting a step, the agent should:
-
-- Read this file and the current repo state.
-- Confirm the previous dependent steps are present.
-- Keep changes scoped to the step.
-- Add or update tests for the behavior it touches when practical.
-- Update README/env docs if the step introduces setup or usage changes.
-- If you add, rename, or change any variable in `.env.example`, explicitly ask the user to add or update the same variable in `.env.local` as well. Include where to find the value, whether it is required now, and whether deployment environments also need it.
-- Run the relevant verification command before handing off.
-- If a dev server is useful for verification, start it only as needed and stop it before handing off. The project owner prefers to run long-lived dev servers manually in their own terminal.
-
-Recommended completion note from each agent:
-
-- Files changed
-- Commands run
-- Integration handoff, when the step touches external services, credentials, storage, webhooks, deployment, or model providers:
-  - Clearly separate **implemented in repo** from **user action required outside the repo**
-  - State whether each user action is required **now**, **only before manual testing**, or **before a later dependent step**
-  - Accounts/projects the user must create or configure
-  - Env vars/secrets to add locally and in deployment
-  - SQL migrations, dashboard settings, buckets, redirect URLs, webhooks, or provider console steps to run
-  - Manual verification steps after configuration
-- Known limitations
-- Manual checks completed
+Each step below should be executable by a separate agent. Follow the durable agent workflow, environment-variable, verification, and handoff rules in [.cursor/rules/project.mdc](.cursor/rules/project.mdc).
 
 ### How To Read Integration Handoffs
 
-When an agent says a handoff action is needed, it means the code for that feature was added to the repo, but some external service may still need configuration before the feature works against a real account.
-
-Use these labels:
-
-- **Implemented in repo**: the agent created or updated files, routes, migrations, docs, or UI. No manual external setup is implied by this line.
-- **User action required now**: do this before continuing if the next requested work depends on live external services.
-- **Required before manual testing**: you can continue coding later steps, but the feature will not work in a browser/API call until this setup is done.
-- **Required before deployment**: local code can continue, but production will fail or be incomplete until this is configured.
-
-For SQL migrations, do not manually recreate the same tables, functions, or buckets in a dashboard unless the handoff explicitly says to do so. Prefer applying the migration file from `supabase/migrations/` with the Supabase SQL editor or Supabase CLI. Manual dashboard setup is only a fallback when no migration exists or when the handoff explicitly calls out a dashboard-only setting.
+When an agent says a handoff action is needed, it means the code for that feature was added to the repo, but some external service may still need configuration before the feature works against a real account. The required handoff labels and migration guidance are defined in [.cursor/rules/project.mdc](.cursor/rules/project.mdc).
 
 ## Step 1: Bootstrap The App Shell
 
