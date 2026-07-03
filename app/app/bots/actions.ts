@@ -89,3 +89,55 @@ export async function deleteBot(formData: FormData) {
   redirect("/app/bots?deleted=1");
 }
 
+export async function uploadDocument(formData: FormData) {
+  const botId = getText(formData, "botId");
+
+  if (!botId) {
+    redirect("/app/bots?error=Missing%20bot%20id.");
+  }
+
+  const payload = new FormData();
+  const file = formData.get("file");
+
+  if (file) {
+    payload.set("file", file);
+  }
+
+  const result = await fetchInternalApi<unknown>(`/api/bots/${botId}/documents`, {
+    method: "POST",
+    body: payload
+  });
+
+  if (!result.ok) {
+    redirect(`/app/bots/${botId}?error=${errorParam(result.error.message)}`);
+  }
+
+  revalidatePath("/app/bots");
+  revalidatePath(`/app/bots/${botId}`);
+  redirect(`/app/bots/${botId}?documentUploaded=1`);
+}
+
+export async function deleteDocument(formData: FormData) {
+  const botId = getText(formData, "botId");
+  const documentId = getText(formData, "documentId");
+
+  if (!botId) {
+    redirect("/app/bots?error=Missing%20bot%20id.");
+  }
+
+  if (!documentId) {
+    redirect(`/app/bots/${botId}?error=Missing%20document%20id.`);
+  }
+
+  const result = await fetchInternalApi<never>(`/api/bots/${botId}/documents/${documentId}`, {
+    method: "DELETE"
+  });
+
+  if (!result.ok) {
+    redirect(`/app/bots/${botId}?error=${errorParam(result.error.message)}`);
+  }
+
+  revalidatePath("/app/bots");
+  revalidatePath(`/app/bots/${botId}`);
+  redirect(`/app/bots/${botId}?documentDeleted=1`);
+}

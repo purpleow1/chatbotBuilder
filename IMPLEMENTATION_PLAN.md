@@ -62,12 +62,27 @@ Recommended completion note from each agent:
 - Files changed
 - Commands run
 - Integration handoff, when the step touches external services, credentials, storage, webhooks, deployment, or model providers:
+  - Clearly separate **implemented in repo** from **user action required outside the repo**
+  - State whether each user action is required **now**, **only before manual testing**, or **before a later dependent step**
   - Accounts/projects the user must create or configure
   - Env vars/secrets to add locally and in deployment
   - SQL migrations, dashboard settings, buckets, redirect URLs, webhooks, or provider console steps to run
   - Manual verification steps after configuration
 - Known limitations
 - Manual checks completed
+
+### How To Read Integration Handoffs
+
+When an agent says a handoff action is needed, it means the code for that feature was added to the repo, but some external service may still need configuration before the feature works against a real account.
+
+Use these labels:
+
+- **Implemented in repo**: the agent created or updated files, routes, migrations, docs, or UI. No manual external setup is implied by this line.
+- **User action required now**: do this before continuing if the next requested work depends on live external services.
+- **Required before manual testing**: you can continue coding later steps, but the feature will not work in a browser/API call until this setup is done.
+- **Required before deployment**: local code can continue, but production will fail or be incomplete until this is configured.
+
+For SQL migrations, do not manually recreate the same tables, functions, or buckets in a dashboard unless the handoff explicitly says to do so. Prefer applying the migration file from `supabase/migrations/` with the Supabase SQL editor or Supabase CLI. Manual dashboard setup is only a fallback when no migration exists or when the handoff explicitly calls out a dashboard-only setting.
 
 ## Step 1: Bootstrap The App Shell
 
@@ -207,7 +222,7 @@ Implementation tasks:
 
 - Add Supabase Storage bucket for source documents.
 - Build upload UI on bot detail page.
-- Support at least `.txt`, `.md`, and `.pdf`.
+- Support at least `.txt`, `.md`, `.pdf`, `.docx`, and `.csv`.
 - Store document metadata in `documents`.
 - Show document list with status: queued, processing, ready, failed.
 - Add delete document behavior that also removes chunks.
@@ -222,9 +237,19 @@ What you can check:
 
 Integration handoff to provide when complete:
 
-- Supabase Storage bucket name, privacy setting, and any required bucket policies or server-only upload route details.
-- File size/type limits configured in the app.
-- Manual upload/delete verification steps.
+- Implemented in repo:
+  - Add a migration that creates or updates a private Supabase Storage bucket named `source-documents`.
+  - Add server-only upload/delete routes that use the service-role client. No public bucket policy should be required for MVP CRUD uploads.
+  - Configure app validation for `.txt`, `.md`, `.pdf`, `.docx`, and `.csv` files up to 10 MB.
+- User action required before manual upload testing:
+  - Apply the new Supabase migration from `supabase/migrations/`. This creates the `source-documents` bucket; do not create the bucket manually if you apply the migration.
+  - If you are not testing uploads yet, this can wait. The next coding step can still be implemented, but upload and ingestion verification will fail until the bucket exists.
+- Required before Step 6 verification:
+  - Ensure the `source-documents` bucket exists in the Supabase project used by `.env.local`, because Step 6 reads uploaded source files and turns queued documents into chunks.
+- Manual verification steps after configuration:
+  - Upload a supported file and confirm it creates a `documents` row plus a stored object.
+  - Upload an unsupported file and confirm the app shows a useful error.
+  - Delete a document and confirm it disappears from the bot knowledge list and removes related chunks.
 
 ## Step 6: Ingestion Pipeline And Vector Search
 

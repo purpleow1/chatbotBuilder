@@ -1,18 +1,24 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { Copy, FileText, MessageSquare, Palette, Save, Settings, Trash2 } from "lucide-react";
-import { deleteBot, updateBot } from "@/app/app/bots/actions";
+import { Copy, FileText, MessageSquare, Palette, Save, Settings, Trash2, Upload } from "lucide-react";
+import { deleteBot, deleteDocument, updateBot, uploadDocument } from "@/app/app/bots/actions";
 import { SubmitButton } from "@/components/submit-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { formatFileSize, MAX_SOURCE_DOCUMENT_BYTES, SUPPORTED_SOURCE_EXTENSIONS } from "@/lib/api/document-validation";
 import { fetchInternalApi } from "@/lib/api/server-fetch";
 import type { BotRecord } from "@/lib/db/bots";
+import type { SourceDocumentRecord } from "@/lib/db/documents";
 
 type BotApiResponse = {
   bot: BotRecord;
+};
+
+type DocumentsApiResponse = {
+  documents: SourceDocumentRecord[];
 };
 
 function getNotice(searchParams: Record<string, string | string[] | undefined>) {
@@ -24,11 +30,53 @@ function getNotice(searchParams: Record<string, string | string[] | undefined>) 
     return "Bot settings saved.";
   }
 
+  if (searchParams.documentUploaded) {
+    return "Document uploaded. It is queued for ingestion in Step 6.";
+  }
+
+  if (searchParams.documentDeleted) {
+    return "Document deleted.";
+  }
+
   if (typeof searchParams.error === "string") {
     return searchParams.error;
   }
 
   return null;
+}
+
+function getStatusClassName(status: SourceDocumentRecord["status"]) {
+  switch (status) {
+    case "ready":
+      return "border-emerald-200 bg-emerald-50 text-emerald-700";
+    case "failed":
+      return "border-destructive/30 bg-destructive/10 text-destructive";
+    case "processing":
+      return "border-blue-200 bg-blue-50 text-blue-700";
+    default:
+      return "border-amber-200 bg-amber-50 text-amber-700";
+  }
+}
+
+function formatBytes(bytes: number) {
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toLocaleString("en", { maximumFractionDigits: 1 })} KB`;
+  }
+
+  return `${(bytes / (1024 * 1024)).toLocaleString("en", { maximumFractionDigits: 1 })} MB`;
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  }).format(new Date(value));
 }
 
 export default async function BotDetailPage({
@@ -39,7 +87,11 @@ export default async function BotDetailPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { botId } = await params;
-  const [query, result] = await Promise.all([searchParams, fetchInternalApi<BotApiResponse>(`/api/bots/${botId}`)]);
+  const [query, result, documentsResult] = await Promise.all([
+    searchParams,
+    fetchInternalApi<BotApiResponse>(`/api/bots/${botId}`),
+    fetchInternalApi<DocumentsApiResponse>(`/api/bots/${botId}/documents`)
+  ]);
 
   if (!result.ok) {
     if (result.status === 401) {
@@ -53,9 +105,15 @@ export default async function BotDetailPage({
     throw new Error(result.error.message);
   }
 
+  if (!documentsResult.ok) {
+    throw new Error(documentsResult.error.message);
+  }
+
   const { bot } = result.data;
+  const { documents } = documentsResult.data;
   const notice = getNotice(query);
   const embedSnippet = `<script src="${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/embed.js" data-bot-id="${bot.id}"></script>`;
+  const acceptedExtensions = SUPPORTED_SOURCE_EXTENSIONS.join(",");
 
   return (
     <div className="space-y-6">
@@ -174,12 +232,59 @@ export default async function BotDetailPage({
             <FileText className="size-5" />
             Knowledge sources
           </CardTitle>
-          <CardDescription>Document upload and processing arrive in Steps 5 and 6.</CardDescription>
+          <CardDescription>
+            Upload {SUPPORTED_SOURCE_EXTENSIONS.join(", ")} files up to {formatFileSize(MAX_SOURCE_DOCUMENT_BYTES)}.
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="rounded-md border bg-muted/45 p-4 text-sm text-muted-foreground">
-            No documents are connected yet. The next step adds upload, status, and delete behavior.
-          </div>
+        <CardContent className="space-y-5">
+          <form action={uploadDocument} className="grid gap-3 rounded-md border bg-muted/35 p-4 md:grid-cols-[1fr_auto]">
+            <input type="hidden" name="botId" value={bot.id} />
+            <div className="space-y-2">
+              <Label htmlFor="source-file">Source file</Label>
+              <Input id="source-file" name="file" type="file" accept={acceptedExtensions} required />
+            </div>
+            <div className="flex items-end">
+              <SubmitButton pendingLabel="Uploading...">
+                <Upload className="size-4" />
+                Upload
+              </SubmitButton>
+            </div>
+          </form>
+
+          {documents.length > 0 ? (
+            <div className="divide-y rounded-md border">
+              {documents.map((document) => (
+                <div key={document.id} className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0 space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="break-all font-medium">{document.file_name}</p>
+                      <span
+                        className={`rounded-full border px-2 py-0.5 text-xs font-medium capitalize ${getStatusClassName(document.status)}`}
+                      >
+                        {document.status}
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {formatBytes(document.size_bytes)} uploaded {formatDate(document.created_at)}
+                    </p>
+                    {document.error_message ? <p className="text-sm text-destructive">{document.error_message}</p> : null}
+                  </div>
+                  <form action={deleteDocument}>
+                    <input type="hidden" name="botId" value={bot.id} />
+                    <input type="hidden" name="documentId" value={document.id} />
+                    <SubmitButton variant="outline" pendingLabel="Deleting...">
+                      <Trash2 className="size-4" />
+                      Delete
+                    </SubmitButton>
+                  </form>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-md border bg-muted/45 p-4 text-sm text-muted-foreground">
+              No documents are connected yet. Upload a source file to queue it for ingestion.
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -201,4 +306,3 @@ export default async function BotDetailPage({
     </div>
   );
 }
-

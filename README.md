@@ -2,7 +2,7 @@
 
 Embeddable chatbot builder MVP. The app lets users create support bots, upload company knowledge, test answers in an in-app chat, and publish an embeddable widget.
 
-The current repo state implements **Steps 1-4** from [IMPLEMENTATION_PLAN.md](/Users/user/repos/chatbotBuilder/IMPLEMENTATION_PLAN.md): a Next.js app shell with product routes, shared UI primitives, Tailwind styling, TanStack Query provider, Supabase schema planning, server-only Supabase data access, Supabase email/password auth with first-login workspace onboarding, and API-backed bot management.
+The current repo state implements **Steps 1-5** from [IMPLEMENTATION_PLAN.md](/Users/user/repos/chatbotBuilder/IMPLEMENTATION_PLAN.md): a Next.js app shell with product routes, shared UI primitives, Tailwind styling, TanStack Query provider, Supabase schema planning, server-only Supabase data access, Supabase email/password auth with first-login workspace onboarding, API-backed bot management, and source document upload management.
 
 ## Tech Stack
 
@@ -46,7 +46,7 @@ npm run build
 
 ## Supabase Setup
 
-Step 2 adds the initial SQL migration at [supabase/migrations/202607020001_initial_schema.sql](/Users/user/repos/chatbotBuilder/supabase/migrations/202607020001_initial_schema.sql). Step 3 adds service-role grants at [supabase/migrations/202607020002_grant_service_role_access.sql](/Users/user/repos/chatbotBuilder/supabase/migrations/202607020002_grant_service_role_access.sql). Apply both to a Supabase project with the SQL editor or Supabase CLI before wiring authenticated app flows.
+Step 2 adds the initial SQL migration at [supabase/migrations/202607020001_initial_schema.sql](/Users/user/repos/chatbotBuilder/supabase/migrations/202607020001_initial_schema.sql). Step 3 adds service-role grants at [supabase/migrations/202607020002_grant_service_role_access.sql](/Users/user/repos/chatbotBuilder/supabase/migrations/202607020002_grant_service_role_access.sql). Step 5 adds the private Storage bucket at [supabase/migrations/202607020003_create_source_documents_bucket.sql](/Users/user/repos/chatbotBuilder/supabase/migrations/202607020003_create_source_documents_bucket.sql). Apply all migrations to a Supabase project with the SQL editor or Supabase CLI before wiring authenticated app flows.
 
 Required environment variables:
 
@@ -69,6 +69,9 @@ API routes include:
 - `GET /api/bots`: lists bots for the active workspace and returns plan capacity.
 - `POST /api/bots`: creates a bot after Zod validation and plan-limit checks.
 - `GET /api/bots/[botId]`, `PATCH /api/bots/[botId]`, `DELETE /api/bots/[botId]`: reads, updates, and deletes workspace-scoped bots.
+- `GET /api/bots/[botId]/documents`: lists workspace-scoped source documents for a bot.
+- `POST /api/bots/[botId]/documents`: uploads `.txt`, `.md`, `.pdf`, `.docx`, and `.csv` files up to 10 MB into the private `source-documents` bucket and creates a queued document row.
+- `DELETE /api/bots/[botId]/documents/[documentId]`: deletes document chunks, metadata, and the stored file.
 
 The RAG schema uses `document_chunks.embedding vector(768)`, matching the MVP choice to request 768-dimensional Google Gemini embeddings.
 
@@ -102,6 +105,24 @@ Manual bot checks:
 - On the free plan, confirm creating a second bot is blocked and points to Billing.
 - Delete the bot from its settings page and confirm the list returns to the empty state.
 
+## Document Uploads
+
+Step 5 uses a private Supabase Storage bucket named `source-documents`. The server-only upload route writes files under `workspaceId/botId/` paths, stores document metadata in `documents`, records `document_uploaded` usage events, and leaves new documents in `queued` status for Step 6 ingestion.
+
+Supported source files:
+
+- `.txt`
+- `.md`
+- `.pdf`
+- `.docx`
+- `.csv`
+
+The app and bucket both enforce a 10 MB file limit. Manual checks:
+
+- Upload a supported file from `/app/bots/[botId]` and confirm it appears in the knowledge list with `queued` status after refresh.
+- Try an unsupported extension and confirm the route returns a useful validation error.
+- Delete the document and confirm it disappears from the knowledge list.
+
 ## Implemented Routes
 
 - `/login`
@@ -117,6 +138,6 @@ Manual bot checks:
 
 ## Notes For Next Agents
 
-- Document upload, RAG, billing checkout, and the real widget loader are intentionally not implemented yet.
+- RAG ingestion, billing checkout, and the real widget loader are intentionally not implemented yet.
 - Keep client components and Server Components away from Supabase/DB modules. Fetch app data through API routes.
 - The dashboard uses live bot capacity, while document and message statistics remain demo data until later steps.
