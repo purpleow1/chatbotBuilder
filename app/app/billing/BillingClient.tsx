@@ -123,6 +123,7 @@ export function BillingClient({ subscription, usage, plans, stripeEnabled, initi
   const planOrder: SubscriptionPlan[] = ["free", "pro", "business"];
   const currentPlanIndex = planOrder.indexOf(currentPlan);
   const isMockBilling = subscription.billing_provider === "mock";
+  const isFreePlan = currentPlan === "free";
   const canManageStripe = !isMockBilling && stripeEnabled && !!subscription.stripe_customer_id;
 
   return (
@@ -153,12 +154,13 @@ export function BillingClient({ subscription, usage, plans, stripeEnabled, initi
             <div>
               <CardTitle className="text-base">
                 {plans.find((p) => p.plan === currentPlan)?.name ?? "Free"} plan
-                {isMockBilling && <span className="ml-2 text-xs font-normal text-muted-foreground">(mock)</span>}
               </CardTitle>
-              <CardDescription className="mt-0.5">
-                Billing period: {new Date(subscription.current_period_start).toLocaleDateString()} –{" "}
-                {new Date(subscription.current_period_end).toLocaleDateString()}
-              </CardDescription>
+              {!isFreePlan && (
+                <CardDescription className="mt-0.5">
+                  Billing period: {new Date(subscription.current_period_start).toLocaleDateString()} –{" "}
+                  {new Date(subscription.current_period_end).toLocaleDateString()}
+                </CardDescription>
+              )}
             </div>
             {canManageStripe && (
               <Button variant="outline" size="sm" onClick={handleManageBilling} disabled={loadingPlan !== null}>
