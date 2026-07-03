@@ -26,13 +26,34 @@ type PdfWorkerModule = {
   WorkerMessageHandler: unknown;
 };
 
+type CanvasDomPolyfills = {
+  DOMMatrix: typeof DOMMatrix;
+  ImageData: typeof ImageData;
+  Path2D: typeof Path2D;
+};
+
 const requirePdfParse = createRequire(import.meta.url);
 let pdfWorkerConfigured = false;
+let pdfDomPolyfillsConfigured = false;
 
 function getPdfWorkerUrl() {
   const workerPath = path.join(process.cwd(), "node_modules", "pdf-parse", "dist", "worker", "pdf.worker.mjs");
 
   return pathToFileURL(workerPath).href;
+}
+
+function configurePdfDomPolyfills() {
+  if (pdfDomPolyfillsConfigured) {
+    return;
+  }
+
+  const canvas = requirePdfParse("@napi-rs/canvas") as CanvasDomPolyfills;
+  const writableGlobal = globalThis as typeof globalThis & Partial<CanvasDomPolyfills>;
+
+  writableGlobal.DOMMatrix ??= canvas.DOMMatrix;
+  writableGlobal.ImageData ??= canvas.ImageData;
+  writableGlobal.Path2D ??= canvas.Path2D;
+  pdfDomPolyfillsConfigured = true;
 }
 
 async function configurePdfWorker() {
@@ -59,6 +80,7 @@ function normalizeText(text: string) {
 }
 
 async function extractPdfSections(buffer: Buffer): Promise<ExtractedTextSection[]> {
+  configurePdfDomPolyfills();
   await configurePdfWorker();
 
   const { PDFParse } = requirePdfParse("pdf-parse") as { PDFParse: PdfParseConstructor };
