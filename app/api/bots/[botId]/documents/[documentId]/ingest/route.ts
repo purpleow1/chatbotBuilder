@@ -14,11 +14,17 @@ export async function POST(
     const { botId, documentId } = await params;
     const { user, cookiesToSet } = await authenticateRequest(request);
     const account = await ensureAccountForUser(user);
+    console.info("Document ingestion retry request received.", {
+      botId,
+      documentId,
+      workspaceId: account.activeWorkspace.id,
+      userId: user.id
+    });
     const document = await ingestDocumentForBot(account.activeWorkspace.id, botId, documentId);
     const response = NextResponse.json({ document });
 
     return applyAuthCookies(response, cookiesToSet);
   } catch (error) {
-    return apiErrorResponse(error);
+    return apiErrorResponse(error, "POST /api/bots/[botId]/documents/[documentId]/ingest");
   }
 }

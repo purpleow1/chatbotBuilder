@@ -13,6 +13,7 @@ export type ApiFetchResult<T> =
       error: {
         code: string;
         message: string;
+        details?: unknown;
       };
     };
 
@@ -37,20 +38,35 @@ export async function fetchInternalApi<T>(path: string, init: RequestInit = {}):
       cookie: headerStore.get("cookie") ?? ""
     }
   });
-  const payload = (await response.json().catch(() => ({}))) as T & {
+  const responseText = await response.text();
+  const payload = parseResponsePayload(responseText) as T & {
     error?: {
       code?: string;
       message?: string;
+      details?: unknown;
     };
   };
 
   if (!response.ok) {
+    const fallbackMessage = `Request to ${path} failed with HTTP ${response.status}${
+      responseText ? `: ${truncateForMessage(responseText)}` : "."
+    }`;
+
+    console.error("Internal API request failed.", {
+      path,
+      status: response.status,
+      statusText: response.statusText,
+      payload,
+      responseText: truncateForLog(responseText)
+    });
+
     return {
       ok: false,
       status: response.status,
       error: {
         code: payload.error?.code ?? "api_error",
-        message: payload.error?.message ?? "The request could not be completed."
+        message: payload.error?.message ?? fallbackMessage,
+        details: payload.error?.details
       }
     };
   }
@@ -60,4 +76,24 @@ export async function fetchInternalApi<T>(path: string, init: RequestInit = {}):
     status: response.status,
     data: payload as T
   };
+}
+
+function parseResponsePayload(responseText: string) {
+  if (!responseText) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(responseText);
+  } catch {
+    return {};
+  }
+}
+
+function truncateForLog(value: string, maxLength = 4000) {
+  return value.length > maxLength ? `${value.slice(0, maxLength)}... [truncated]` : value;
+}
+
+function truncateForMessage(value: string, maxLength = 600) {
+  return value.length > maxLength ? `${value.slice(0, maxLength)}...` : value;
 }

@@ -291,6 +291,7 @@ export async function createChatTurn(workspaceId: string, input: CreateChatMessa
       conversation_id: conversation.id,
       message_id: userMessage.id,
       event_type: "message_sent",
+      quantity: 1,
       metadata: {
         channel: conversation.channel
       }
@@ -301,6 +302,7 @@ export async function createChatTurn(workspaceId: string, input: CreateChatMessa
       conversation_id: conversation.id,
       message_id: assistantMessage.id,
       event_type: "assistant_response",
+      quantity: 1,
       metadata: {
         model: chatResult.model,
         matchCount: relevantMatches.length

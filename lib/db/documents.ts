@@ -185,6 +185,7 @@ export async function uploadDocumentForBot(
     workspace_id: workspaceId,
     bot_id: botId,
     event_type: "document_uploaded",
+    quantity: 1,
     metadata: {
       documentId: data.id,
       fileName: file.name,

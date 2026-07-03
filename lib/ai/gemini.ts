@@ -46,6 +46,22 @@ export type GeminiChatResult = {
   finishReason: string | null;
 };
 
+function parseJsonResponse<T>(text: string): T | null {
+  if (!text) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return null;
+  }
+}
+
+function truncateForLog(value: string, maxLength = 4000) {
+  return value.length > maxLength ? `${value.slice(0, maxLength)}... [truncated]` : value;
+}
+
 function getGeminiApiKey() {
   const apiKey = process.env.GEMINI_API_KEY;
 
@@ -117,17 +133,44 @@ export async function generateGeminiEmbedding(text: string, usage: "document" | 
         },
         body: JSON.stringify(body)
       });
-      const payload = (await response.json()) as GeminiEmbeddingResponse;
+      const responseText = await response.text();
+      const payload = parseJsonResponse<GeminiEmbeddingResponse>(responseText);
 
       if (!response.ok) {
-        const message = payload.error?.message ?? `Gemini embedding request failed with status ${response.status}.`;
+        const message = payload?.error?.message ?? `Gemini embedding request failed with status ${response.status}.`;
+        const details = {
+          model: GEMINI_EMBEDDING_MODEL,
+          usage,
+          attempt: attempt + 1,
+          status: response.status,
+          statusText: response.statusText,
+          response: payload ?? truncateForLog(responseText)
+        };
+
+        console.error("Gemini embedding request failed.", details);
 
         if ((response.status === 429 || response.status >= 500) && attempt < 2) {
           await sleep(400 * 2 ** attempt);
           continue;
         }
 
-        throw new ApiError(response.status >= 500 ? 502 : response.status, message, "gemini_embedding_failed");
+        throw new ApiError(
+          response.status >= 500 ? 502 : response.status,
+          `Gemini embedding request failed: ${message}`,
+          "gemini_embedding_failed",
+          details
+        );
+      }
+
+      if (!payload) {
+        throw new ApiError(502, "Gemini returned a non-JSON embedding response.", "gemini_invalid_json", {
+          model: GEMINI_EMBEDDING_MODEL,
+          usage,
+          attempt: attempt + 1,
+          status: response.status,
+          statusText: response.statusText,
+          responseText: truncateForLog(responseText)
+        });
       }
 
       return parseEmbedding(payload);
@@ -135,9 +178,21 @@ export async function generateGeminiEmbedding(text: string, usage: "document" | 
       lastError = error;
 
       if (error instanceof ApiError || attempt === 2) {
+        console.error("Gemini embedding attempt failed.", {
+          model: GEMINI_EMBEDDING_MODEL,
+          usage,
+          attempt: attempt + 1,
+          error
+        });
         throw error;
       }
 
+      console.error("Gemini embedding attempt failed; retrying.", {
+        model: GEMINI_EMBEDDING_MODEL,
+        usage,
+        attempt: attempt + 1,
+        error
+      });
       await sleep(400 * 2 ** attempt);
     }
   }
@@ -177,17 +232,42 @@ export async function generateGeminiChatResponse(prompt: string): Promise<Gemini
       },
       body: JSON.stringify(body)
     });
-    const payload = (await response.json()) as GeminiGenerateContentResponse;
+    const responseText = await response.text();
+    const payload = parseJsonResponse<GeminiGenerateContentResponse>(responseText);
 
     if (!response.ok) {
-      const message = payload.error?.message ?? `Gemini chat request failed with status ${response.status}.`;
+      const message = payload?.error?.message ?? `Gemini chat request failed with status ${response.status}.`;
+      const details = {
+        model: GEMINI_CHAT_MODEL,
+        attempt: attempt + 1,
+        status: response.status,
+        statusText: response.statusText,
+        response: payload ?? truncateForLog(responseText)
+      };
+
+      console.error("Gemini chat request failed.", details);
 
       if ((response.status === 429 || response.status >= 500) && attempt < 2) {
         await sleep(400 * 2 ** attempt);
         continue;
       }
 
-      throw new ApiError(response.status >= 500 ? 502 : response.status, message, "gemini_chat_failed");
+      throw new ApiError(
+        response.status >= 500 ? 502 : response.status,
+        `Gemini chat request failed: ${message}`,
+        "gemini_chat_failed",
+        details
+      );
+    }
+
+    if (!payload) {
+      throw new ApiError(502, "Gemini returned a non-JSON chat response.", "gemini_invalid_json", {
+        model: GEMINI_CHAT_MODEL,
+        attempt: attempt + 1,
+        status: response.status,
+        statusText: response.statusText,
+        responseText: truncateForLog(responseText)
+      });
     }
 
     const candidate = payload.candidates?.[0];

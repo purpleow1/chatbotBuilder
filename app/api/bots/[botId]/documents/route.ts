@@ -26,7 +26,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     return applyAuthCookies(response, cookiesToSet);
   } catch (error) {
-    return apiErrorResponse(error);
+    return apiErrorResponse(error, "GET /api/bots/[botId]/documents");
   }
 }
 
@@ -35,6 +35,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const { botId } = await params;
     const { user, cookiesToSet } = await authenticateRequest(request);
     const account = await ensureAccountForUser(user);
+    console.info("Document upload request received.", {
+      botId,
+      workspaceId: account.activeWorkspace.id,
+      userId: user.id
+    });
     const document = await uploadDocumentForBot(
       account.activeWorkspace.id,
       botId,
@@ -47,7 +52,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     try {
       responseDocument = await ingestDocumentForBot(account.activeWorkspace.id, botId, document.id);
-    } catch {
+    } catch (ingestionError) {
+      console.error("Upload succeeded, but immediate document ingestion failed.", {
+        botId,
+        documentId: document.id,
+        error: ingestionError
+      });
       responseDocument = await getDocumentForBot(account.activeWorkspace.id, botId, document.id);
     }
 
@@ -55,6 +65,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     return applyAuthCookies(response, cookiesToSet);
   } catch (error) {
-    return apiErrorResponse(error);
+    return apiErrorResponse(error, "POST /api/bots/[botId]/documents");
   }
 }

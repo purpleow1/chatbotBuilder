@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { fetchInternalApi } from "@/lib/api/server-fetch";
+import { fetchInternalApi, type ApiFetchResult } from "@/lib/api/server-fetch";
 import type { BotRecord } from "@/lib/db/bots";
 import type { SourceDocumentRecord } from "@/lib/db/documents";
 
@@ -13,6 +13,13 @@ type BotResponse = {
 type DocumentResponse = {
   document: SourceDocumentRecord;
 };
+
+function logInternalApiFailure(action: string, result: Extract<ApiFetchResult<unknown>, { ok: false }>) {
+  console.error(`${action} failed.`, {
+    status: result.status,
+    error: result.error
+  });
+}
 
 function getText(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -44,6 +51,7 @@ export async function createBot(formData: FormData) {
   });
 
   if (!result.ok) {
+    logInternalApiFailure("Create bot", result);
     redirect(`/app/bots/new?error=${errorParam(result.error.message)}`);
   }
 
@@ -67,6 +75,7 @@ export async function updateBot(formData: FormData) {
   });
 
   if (!result.ok) {
+    logInternalApiFailure("Update bot", result);
     redirect(`/app/bots/${botId}?error=${errorParam(result.error.message)}`);
   }
 
@@ -87,6 +96,7 @@ export async function deleteBot(formData: FormData) {
   });
 
   if (!result.ok) {
+    logInternalApiFailure("Delete bot", result);
     redirect(`/app/bots/${botId}?error=${errorParam(result.error.message)}`);
   }
 
@@ -114,6 +124,7 @@ export async function uploadDocument(formData: FormData) {
   });
 
   if (!result.ok) {
+    logInternalApiFailure("Upload document", result);
     redirect(`/app/bots/${botId}?error=${errorParam(result.error.message)}`);
   }
 
@@ -141,6 +152,7 @@ export async function deleteDocument(formData: FormData) {
   });
 
   if (!result.ok) {
+    logInternalApiFailure("Delete document", result);
     redirect(`/app/bots/${botId}?error=${errorParam(result.error.message)}`);
   }
 
@@ -166,6 +178,7 @@ export async function retryDocumentIngestion(formData: FormData) {
   });
 
   if (!result.ok) {
+    logInternalApiFailure("Retry document ingestion", result);
     redirect(`/app/bots/${botId}?error=${errorParam(result.error.message)}`);
   }
 

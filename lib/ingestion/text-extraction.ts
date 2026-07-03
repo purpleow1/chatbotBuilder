@@ -1,6 +1,8 @@
 import "server-only";
+import path from "node:path";
+import { createRequire } from "node:module";
+import { pathToFileURL } from "node:url";
 import mammoth from "mammoth";
-import { PDFParse } from "pdf-parse";
 import { ApiError } from "@/lib/api/errors";
 import { getFileExtension } from "@/lib/api/document-validation";
 
@@ -8,6 +10,44 @@ export type ExtractedTextSection = {
   text: string;
   pageNumber: number | null;
 };
+
+type PdfParseConstructor = new (options: { data: Buffer }) => {
+  getText: () => Promise<{
+    text: string;
+    pages: Array<{
+      text: string;
+      num: number;
+    }>;
+  }>;
+  destroy: () => Promise<void>;
+};
+
+type PdfWorkerModule = {
+  WorkerMessageHandler: unknown;
+};
+
+const requirePdfParse = createRequire(import.meta.url);
+let pdfWorkerConfigured = false;
+
+function getPdfWorkerUrl() {
+  const workerPath = path.join(process.cwd(), "node_modules", "pdf-parse", "dist", "worker", "pdf.worker.mjs");
+
+  return pathToFileURL(workerPath).href;
+}
+
+async function configurePdfWorker() {
+  if (pdfWorkerConfigured) {
+    return;
+  }
+
+  const importWorker = new Function("specifier", "return import(specifier)") as (
+    specifier: string
+  ) => Promise<PdfWorkerModule>;
+  const workerModule = await importWorker(getPdfWorkerUrl());
+
+  (globalThis as typeof globalThis & { pdfjsWorker?: PdfWorkerModule }).pdfjsWorker = workerModule;
+  pdfWorkerConfigured = true;
+}
 
 function normalizeText(text: string) {
   return text
@@ -19,6 +59,10 @@ function normalizeText(text: string) {
 }
 
 async function extractPdfSections(buffer: Buffer): Promise<ExtractedTextSection[]> {
+  await configurePdfWorker();
+
+  const { PDFParse } = requirePdfParse("pdf-parse") as { PDFParse: PdfParseConstructor };
+
   const parser = new PDFParse({ data: buffer });
 
   try {
