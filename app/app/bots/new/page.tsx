@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeft, Bot, CheckCircle2, CreditCard } from "lucide-react";
+import { Fragment } from "react";
+import { ArrowLeft, ArrowRight, Bot, CreditCard } from "lucide-react";
 import { createBot } from "@/app/app/bots/actions";
 import { SubmitButton } from "@/components/submit-button";
 import { Button } from "@/components/ui/button";
@@ -121,14 +122,23 @@ export default async function NewBotPage({
         </Card>
       )}
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        {["Create profile", "Upload sources", "Test and embed"].map((item) => (
-          <div key={item} className="flex items-center gap-2 rounded-md border bg-card p-3 text-sm">
-            <CheckCircle2 className="size-4 text-primary" />
-            {item}
-          </div>
+      <ol className="grid gap-3 sm:grid-cols-[1fr_auto_1fr_auto_1fr] sm:items-center">
+        {["Create bot", "Upload sources", "Test and embed"].map((item, index, steps) => (
+          <Fragment key={item}>
+            <li className="flex items-center gap-3 rounded-md border bg-card p-3 text-sm">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+                {index + 1}
+              </span>
+              <span className="font-medium">{item}</span>
+            </li>
+            {index < steps.length - 1 ? (
+              <li aria-hidden="true" className="hidden text-muted-foreground sm:block">
+                <ArrowRight className="size-5" />
+              </li>
+            ) : null}
+          </Fragment>
         ))}
-      </div>
+      </ol>
     </div>
   );
 }

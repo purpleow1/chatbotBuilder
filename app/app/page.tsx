@@ -23,12 +23,6 @@ type DocumentsApiResponse = {
   documents: SourceDocumentRecord[];
 };
 
-const recentActivity = [
-  "Return policy bot answered 18 questions",
-  "Getting-started.md finished processing",
-  "Widget theme updated for Acme Support"
-];
-
 function formatResetDate(value: string) {
   return new Intl.DateTimeFormat("en", {
     month: "short",
@@ -154,23 +148,18 @@ export default async function AppDashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>Recent activity</CardTitle>
-            <CardDescription>{firstBot ? "Recent workspace activity." : "Activity appears after you create a bot."}</CardDescription>
+            <CardDescription>Workspace activity tracking is coming soon.</CardDescription>
           </CardHeader>
           <CardContent>
-            {firstBot ? (
-              <div className="space-y-3">
-                {recentActivity.map((activity) => (
-                  <div key={activity} className="flex items-start gap-3 rounded-md border bg-background p-3">
-                    <PlugZap className="mt-0.5 size-4 text-primary" />
-                    <p className="text-sm">{activity}</p>
-                  </div>
-                ))}
+            <div className="flex items-start gap-3 rounded-md border bg-background p-4">
+              <PlugZap className="mt-0.5 size-4 shrink-0 text-primary" />
+              <div className="min-w-0">
+                <p className="text-sm font-medium">Activity feed coming soon</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  We will show bot conversations, document processing, and widget updates here once the feature is ready.
+                </p>
               </div>
-            ) : (
-              <div className="rounded-md border bg-background p-4 text-sm text-muted-foreground">
-                Create a bot to start building your support assistant.
-              </div>
-            )}
+            </div>
             <Button variant="outline" asChild className="mt-4 w-full">
               <Link href={firstBot ? `/app/bots/${firstBot.id}` : "/app/bots/new"}>
                 {firstBot ? "Open bot" : "Create bot"}
