@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { apiErrorResponse, ApiError } from "@/lib/api/errors";
 import { applyAuthCookies, authenticateRequest } from "@/lib/db/auth";
-import { getDocumentForBot, listDocumentsForBot, uploadDocumentForBot } from "@/lib/db/documents";
+import { getDocumentCapacityForBot, getDocumentForBot, listDocumentsForBot, uploadDocumentForBot } from "@/lib/db/documents";
 import { ensureAccountForUser } from "@/lib/db/onboarding";
 
 export const runtime = "nodejs";
@@ -21,8 +21,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const { botId } = await params;
     const { user, cookiesToSet } = await authenticateRequest(request);
     const account = await ensureAccountForUser(user);
-    const documents = await listDocumentsForBot(account.activeWorkspace.id, botId);
-    const response = NextResponse.json({ documents });
+    const [documents, capacity] = await Promise.all([
+      listDocumentsForBot(account.activeWorkspace.id, botId),
+      getDocumentCapacityForBot(account.activeWorkspace.id, botId)
+    ]);
+    const response = NextResponse.json({ documents, capacity });
 
     return applyAuthCookies(response, cookiesToSet);
   } catch (error) {

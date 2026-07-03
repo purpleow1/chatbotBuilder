@@ -2,9 +2,10 @@ import "server-only";
 import { ApiError } from "@/lib/api/errors";
 import { createChatTurn, type ChatCitation, type ChatConversation, type ChatMessage } from "@/lib/db/chat";
 import type { BotRecord } from "@/lib/db/bots";
-import type { SubscriptionStatus } from "@/lib/db/database.types";
+import type { SubscriptionPlan, SubscriptionStatus } from "@/lib/db/database.types";
+import { planAllowsCustomTheme, planRemovesBranding } from "@/lib/plans";
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
-import { normalizeWidgetSettings, type WidgetSettings } from "@/lib/widget/settings";
+import { defaultWidgetSettings, normalizeWidgetSettings, type WidgetSettings } from "@/lib/widget/settings";
 
 const botColumns =
   "id, workspace_id, created_by, name, description, purpose, support_tone, fallback_message, public_widget_enabled, status, widget_settings, created_at, updated_at";
@@ -12,6 +13,7 @@ const botColumns =
 type WidgetAvailability = {
   bot: BotRecord;
   settings: WidgetSettings;
+  plan: SubscriptionPlan;
 };
 
 type WidgetChatInput = {
@@ -26,6 +28,7 @@ export type PublicWidgetConfig = {
   name: string;
   description: string | null;
   settings: WidgetSettings;
+  showBranding: boolean;
 };
 
 async function getPublicBot(botId: string) {
@@ -43,11 +46,11 @@ async function getPublicBot(botId: string) {
   return data as BotRecord;
 }
 
-async function ensurePlanAllowsWidget(bot: BotRecord) {
+async function ensurePlanAllowsWidget(bot: BotRecord): Promise<SubscriptionPlan> {
   const supabase = getSupabaseServiceClient();
   const { data: subscription, error: subscriptionError } = await supabase
     .from("subscriptions")
-    .select("status, monthly_message_limit, current_period_start, current_period_end")
+    .select("plan, status, monthly_message_limit, current_period_start, current_period_end")
     .eq("workspace_id", bot.workspace_id)
     .maybeSingle();
 
@@ -55,6 +58,7 @@ async function ensurePlanAllowsWidget(bot: BotRecord) {
     throw subscriptionError;
   }
 
+  const plan = (subscription?.plan ?? "free") as SubscriptionPlan;
   const status = subscription?.status as SubscriptionStatus | undefined;
 
   if (status === "canceled" || status === "past_due") {
@@ -81,6 +85,8 @@ async function ensurePlanAllowsWidget(bot: BotRecord) {
   if (used >= monthlyLimit) {
     throw new ApiError(402, "This widget has reached its monthly message limit.", "widget_message_limit_reached");
   }
+
+  return plan;
 }
 
 export async function getPublicWidgetAvailability(botId: string): Promise<WidgetAvailability> {
@@ -94,16 +100,24 @@ export async function getPublicWidgetAvailability(botId: string): Promise<Widget
     throw new ApiError(403, "This bot is disabled.", "bot_disabled");
   }
 
-  await ensurePlanAllowsWidget(bot);
+  const plan = await ensurePlanAllowsWidget(bot);
+  const rawSettings = normalizeWidgetSettings(bot.widget_settings, bot.name);
+  const settings = planAllowsCustomTheme(plan)
+    ? rawSettings
+    : {
+        ...rawSettings,
+        primaryColor: defaultWidgetSettings.primaryColor
+      };
 
   return {
     bot,
-    settings: normalizeWidgetSettings(bot.widget_settings, bot.name)
+    settings,
+    plan
   };
 }
 
 export async function getPublicWidgetConfig(botId: string): Promise<PublicWidgetConfig> {
-  const { bot, settings } = await getPublicWidgetAvailability(botId);
+  const { bot, settings, plan } = await getPublicWidgetAvailability(botId);
   const supabase = getSupabaseServiceClient();
 
   await supabase.from("usage_events").insert({
@@ -120,7 +134,8 @@ export async function getPublicWidgetConfig(botId: string): Promise<PublicWidget
     botId: bot.id,
     name: bot.name,
     description: bot.description,
-    settings
+    settings,
+    showBranding: !planRemovesBranding(plan)
   };
 }
 

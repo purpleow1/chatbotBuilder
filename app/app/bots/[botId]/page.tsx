@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { FileText, MessageSquare, Palette, Save, Settings, Trash2, Upload } from "lucide-react";
+import { CreditCard, FileText, MessageSquare, Palette, Save, Settings, Trash2, Upload } from "lucide-react";
 import { deleteBot, deleteDocument, retryDocumentIngestion, updateBot, uploadDocument } from "@/app/app/bots/actions";
 import { SubmitButton } from "@/components/submit-button";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatFileSize, MAX_SOURCE_DOCUMENT_BYTES, SUPPORTED_SOURCE_EXTENSIONS } from "@/lib/api/document-validation";
 import { fetchInternalApi } from "@/lib/api/server-fetch";
 import type { BotRecord } from "@/lib/db/bots";
-import type { SourceDocumentRecord } from "@/lib/db/documents";
+import type { DocumentCapacity, SourceDocumentRecord } from "@/lib/db/documents";
 import { normalizeWidgetSettings } from "@/lib/widget/settings";
 
 type BotApiResponse = {
@@ -20,6 +20,7 @@ type BotApiResponse = {
 
 type DocumentsApiResponse = {
   documents: SourceDocumentRecord[];
+  capacity: DocumentCapacity;
 };
 
 function getNotice(searchParams: Record<string, string | string[] | undefined>) {
@@ -112,6 +113,7 @@ export default async function BotDetailPage({
 
   const { bot } = result.data;
   const documents = documentsResult.ok ? documentsResult.data.documents : [];
+  const documentCapacity = documentsResult.ok ? documentsResult.data.capacity : null;
   const documentsError = documentsResult.ok ? null : documentsResult.error.message;
   const notice = getNotice(query);
   const widgetSettings = normalizeWidgetSettings(bot.widget_settings, bot.name);
@@ -303,19 +305,35 @@ export default async function BotDetailPage({
             </div>
           ) : null}
 
-          <form action={uploadDocument} className="grid gap-3 rounded-md border bg-muted/35 p-4 md:grid-cols-[1fr_auto]">
-            <input type="hidden" name="botId" value={bot.id} />
-            <div className="space-y-2">
-              <Label htmlFor="source-file">Source file</Label>
-              <Input id="source-file" name="file" type="file" accept={acceptedExtensions} required />
+          {documentCapacity && !documentCapacity.can_upload ? (
+            <div className="flex items-start gap-3 rounded-md border border-amber-200 bg-amber-50 p-4 text-sm dark:border-amber-800 dark:bg-amber-950">
+              <CreditCard className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+              <div>
+                <p className="font-medium text-amber-800 dark:text-amber-200">Document limit reached</p>
+                <p className="mt-0.5 text-amber-700 dark:text-amber-300">
+                  Your {documentCapacity.plan} plan includes {documentCapacity.document_limit} document
+                  {documentCapacity.document_limit === 1 ? "" : "s"}.{" "}
+                  <Link href="/app/billing" className="underline underline-offset-2">
+                    Upgrade to add more.
+                  </Link>
+                </p>
+              </div>
             </div>
-            <div className="flex items-end">
-              <SubmitButton pendingLabel="Uploading...">
-                <Upload className="size-4" />
-                Upload
-              </SubmitButton>
-            </div>
-          </form>
+          ) : (
+            <form action={uploadDocument} className="grid gap-3 rounded-md border bg-muted/35 p-4 md:grid-cols-[1fr_auto]">
+              <input type="hidden" name="botId" value={bot.id} />
+              <div className="space-y-2">
+                <Label htmlFor="source-file">Source file</Label>
+                <Input id="source-file" name="file" type="file" accept={acceptedExtensions} required />
+              </div>
+              <div className="flex items-end">
+                <SubmitButton pendingLabel="Uploading...">
+                  <Upload className="size-4" />
+                  Upload
+                </SubmitButton>
+              </div>
+            </form>
+          )}
 
           {documents.length > 0 ? (
             <div className="divide-y rounded-md border">

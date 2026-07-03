@@ -323,6 +323,13 @@ export function WidgetChatClient({ widget }: WidgetChatClientProps) {
           </Button>
         </div>
       </form>
+
+      {widget.showBranding && (
+        <div className="border-t border-slate-100 bg-white px-4 py-2 text-center text-xs text-slate-400">
+          Powered by{" "}
+          <span className="font-medium text-slate-500">HelpDock AI</span>
+        </div>
+      )}
     </section>
   );
 }

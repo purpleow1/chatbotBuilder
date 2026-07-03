@@ -3,6 +3,7 @@ import { ApiError } from "@/lib/api/errors";
 import { GEMINI_CHAT_MODEL, generateGeminiChatResponse } from "@/lib/ai/gemini";
 import { getBotForWorkspace, type BotRecord } from "@/lib/db/bots";
 import type { Json, MessagePart, MessageRole } from "@/lib/db/database.types";
+import { checkMonthlyMessageLimit, getPlanLimitError } from "@/lib/db/subscriptions";
 import { searchBotKnowledge, type KnowledgeSearchMatch } from "@/lib/db/knowledge";
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
 
@@ -238,6 +239,12 @@ async function insertMessage(input: {
 export async function createChatTurn(workspaceId: string, input: CreateChatMessageInput) {
   const bot = await getBotForWorkspace(workspaceId, input.botId);
   const channel = input.channel ?? "app";
+
+  const messageCheck = await checkMonthlyMessageLimit(workspaceId);
+
+  if (!messageCheck.allowed) {
+    throw getPlanLimitError(messageCheck.plan, "messages");
+  }
 
   if (bot.status === "disabled") {
     throw new ApiError(403, "This bot is disabled.", "bot_disabled");

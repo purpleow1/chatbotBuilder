@@ -46,6 +46,10 @@ function sanitizeFileName(fileName: string) {
     .slice(0, 120);
 }
 
+export async function getDocumentCapacityForBot(workspaceId: string, botId: string): Promise<DocumentCapacity> {
+  return getDocumentCapacity(workspaceId, botId);
+}
+
 async function getDocumentCapacity(workspaceId: string, botId: string): Promise<DocumentCapacity> {
   const supabase = getSupabaseServiceClient();
   const [{ count, error: countError }, { data: subscription, error: subscriptionError }] = await Promise.all([
