@@ -112,7 +112,7 @@ export default async function BotDetailPage({
   const { bot } = result.data;
   const { documents } = documentsResult.data;
   const notice = getNotice(query);
-  const embedSnippet = `<script src="${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/embed.js" data-bot-id="${bot.id}"></script>`;
+  const embedSnippet = `<script src="${process.env.APP_URL ?? "http://localhost:3000"}/embed.js" data-bot-id="${bot.id}"></script>`;
   const acceptedExtensions = SUPPORTED_SOURCE_EXTENSIONS.join(",");
 
   return (

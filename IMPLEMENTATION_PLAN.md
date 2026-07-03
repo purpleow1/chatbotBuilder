@@ -55,6 +55,7 @@ Each step below should be executable by a separate agent. Before starting a step
 - Keep changes scoped to the step.
 - Add or update tests for the behavior it touches when practical.
 - Update README/env docs if the step introduces setup or usage changes.
+- If you add, rename, or change any variable in `.env.example`, explicitly ask the user to add or update the same variable in `.env.local` as well. Include where to find the value, whether it is required now, and whether deployment environments also need it.
 - Run the relevant verification command before handing off.
 - If a dev server is useful for verification, start it only as needed and stop it before handing off. The project owner prefers to run long-lived dev servers manually in their own terminal.
 
@@ -155,8 +156,8 @@ Integration handoff to provide when complete:
 
 - Create or select a Supabase project.
 - Apply the SQL migration from `supabase/migrations/` in Supabase SQL editor or with Supabase CLI.
-- Add `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` to `.env.local`.
-- Keep `NEXT_PUBLIC_SUPABASE_ANON_KEY` only for future Realtime usage, not CRUD data access.
+- Add `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` to `.env.local`.
+- Use the current Supabase publishable key (`sb_publishable_...`) instead of the legacy anon key. Reintroduce a `NEXT_PUBLIC_` Supabase key only if a later step needs browser-side Supabase Realtime.
 - Verify `/api/health` reports Supabase as configured.
 
 ## Step 3: Authentication And Workspace Onboarding
@@ -351,7 +352,7 @@ Integration handoff to provide when complete:
   - Records `message_sent` and `assistant_response` usage events.
   - Falls back to the bot fallback message when retrieved context is not relevant enough.
 - Gemini chat model and configuration:
-  - Default model: `gemini-2.0-flash`.
+  - Default model: `gemini-3.1-flash-lite`.
   - Override env var: `GEMINI_CHAT_MODEL`.
   - Generation settings: temperature `0.2`, top-p `0.8`, max output tokens `900`.
   - Safety settings block medium-and-above harassment, hate speech, sexually explicit, and dangerous content.

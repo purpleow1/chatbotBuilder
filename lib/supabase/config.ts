@@ -1,8 +1,6 @@
-const SUPABASE_URL_ENV = "NEXT_PUBLIC_SUPABASE_URL";
-const SUPABASE_PUBLISHABLE_KEY_ENV = "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY";
-const SUPABASE_ANON_KEY_ENV = "NEXT_PUBLIC_SUPABASE_ANON_KEY";
+const SUPABASE_URL_ENV = "SUPABASE_URL";
+const SUPABASE_PUBLISHABLE_KEY_ENV = "SUPABASE_PUBLISHABLE_KEY";
 const SUPABASE_SERVICE_ROLE_KEY_ENV = "SUPABASE_SERVICE_ROLE_KEY";
-const SUPABASE_PUBLIC_KEY_LABEL = `${SUPABASE_PUBLISHABLE_KEY_ENV} or ${SUPABASE_ANON_KEY_ENV}`;
 
 export class SupabaseConfigError extends Error {
   constructor(public readonly missing: string[]) {
@@ -12,7 +10,7 @@ export class SupabaseConfigError extends Error {
 }
 
 function getSupabasePublicKey() {
-  return process.env[SUPABASE_PUBLISHABLE_KEY_ENV] || process.env[SUPABASE_ANON_KEY_ENV] || "";
+  return process.env[SUPABASE_PUBLISHABLE_KEY_ENV] || "";
 }
 
 function getSupabaseProjectUrl() {
@@ -37,7 +35,7 @@ export function getMissingSupabaseAuthEnv() {
   }
 
   if (!getSupabasePublicKey()) {
-    missing.push(SUPABASE_PUBLIC_KEY_LABEL);
+    missing.push(SUPABASE_PUBLISHABLE_KEY_ENV);
   }
 
   return missing;

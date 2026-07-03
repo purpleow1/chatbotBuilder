@@ -3,7 +3,7 @@ import { ApiError } from "@/lib/api/errors";
 
 export const GEMINI_EMBEDDING_MODEL = process.env.GEMINI_EMBEDDING_MODEL || "gemini-embedding-2";
 export const GEMINI_EMBEDDING_DIMENSIONS = 768;
-export const GEMINI_CHAT_MODEL = process.env.GEMINI_CHAT_MODEL || "gemini-2.0-flash";
+export const GEMINI_CHAT_MODEL = process.env.GEMINI_CHAT_MODEL || "gemini-3.1-flash-lite";
 
 type GeminiEmbeddingResponse = {
   embedding?: {

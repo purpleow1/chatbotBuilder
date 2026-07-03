@@ -49,7 +49,7 @@ function getAuthConfigError() {
 }
 
 function getAppOrigin() {
-  const configuredUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const configuredUrl = process.env.APP_URL || "http://localhost:3000";
 
   try {
     return new URL(configuredUrl).origin;

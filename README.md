@@ -53,17 +53,24 @@ Step 2 adds the initial SQL migration at [supabase/migrations/202607020001_initi
 Required environment variables:
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
-# or legacy fallback:
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
+APP_URL=http://localhost:3000
+SUPABASE_URL=
+SUPABASE_PUBLISHABLE_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 GEMINI_API_KEY=
 GEMINI_EMBEDDING_MODEL=gemini-embedding-2
-GEMINI_CHAT_MODEL=gemini-2.0-flash
+GEMINI_CHAT_MODEL=gemini-3.1-flash-lite
 ```
 
-`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` is used for Supabase Auth cookies. `NEXT_PUBLIC_SUPABASE_ANON_KEY` is supported as a legacy fallback and can later be reused for Realtime. CRUD data access should go through REST API routes backed by the service-role client, not through a browser Supabase data client.
+`SUPABASE_PUBLISHABLE_KEY` is used by server-side Supabase Auth cookie helpers. Use the current `sb_publishable_...` key from Supabase instead of the legacy anon key. CRUD data access should go through REST API routes backed by the service-role client, not through a browser Supabase data client.
+
+Optional Stripe variables for the later billing step:
+
+```bash
+STRIPE_SECRET_KEY=
+STRIPE_PUBLISHABLE_KEY=
+STRIPE_WEBHOOK_SECRET=
+```
 
 The schema intentionally does not add RLS policies. API routes validate the user session, check workspace membership, and then call server-only DB modules.
 
@@ -160,7 +167,7 @@ Omit `conversationId` to start a new conversation. File parts can be persisted f
 
 Gemini chat configuration:
 
-- Default model: `gemini-2.0-flash`
+- Default model: `gemini-3.1-flash-lite`
 - Override env var: `GEMINI_CHAT_MODEL`
 - Generation settings: temperature `0.2`, top-p `0.8`, max output tokens `900`
 - Safety settings: medium-and-above blocking for harassment, hate speech, sexual content, and dangerous content

@@ -23,7 +23,7 @@ function getOrigin(headerStore: Headers) {
     return `${protocol}://${host}`;
   }
 
-  return (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
+  return (process.env.APP_URL || "http://localhost:3000").replace(/\/$/, "");
 }
 
 async function getAccountContext() {
