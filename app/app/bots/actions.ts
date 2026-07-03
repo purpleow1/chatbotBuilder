@@ -46,6 +46,7 @@ function getBotPayload(formData: FormData) {
     description: getText(formData, "description"),
     supportTone: getText(formData, "supportTone"),
     fallbackMessage: getText(formData, "fallbackMessage"),
+    sourceReferencesEnabled: formData.get("sourceReferencesEnabled") === "on",
     publicWidgetEnabled: formData.get("publicWidgetEnabled") === "on",
     widgetSettings: getWidgetSettingsPayload(formData)
   };

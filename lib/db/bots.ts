@@ -6,7 +6,7 @@ import { getSupabaseServiceClient } from "@/lib/supabase/service";
 import { normalizeWidgetSettings } from "@/lib/widget/settings";
 
 const botColumns =
-  "id, workspace_id, created_by, name, description, purpose, support_tone, fallback_message, public_widget_enabled, status, widget_settings, created_at, updated_at";
+  "id, workspace_id, created_by, name, description, purpose, support_tone, fallback_message, source_references_enabled, public_widget_enabled, status, widget_settings, created_at, updated_at";
 
 export type BotRecord = {
   id: string;
@@ -17,6 +17,7 @@ export type BotRecord = {
   purpose: string | null;
   support_tone: string | null;
   fallback_message: string | null;
+  source_references_enabled: boolean;
   public_widget_enabled: boolean;
   status: BotStatus;
   widget_settings: unknown;
@@ -160,6 +161,7 @@ export async function createBotForWorkspace(workspaceId: string, userId: string,
       purpose: input.description,
       support_tone: input.supportTone,
       fallback_message: input.fallbackMessage,
+      source_references_enabled: input.sourceReferencesEnabled,
       public_widget_enabled: input.publicWidgetEnabled,
       widget_settings: normalizeWidgetSettings(input.widgetSettings, input.name),
       status: "draft"
@@ -182,6 +184,7 @@ export async function updateBotForWorkspace(workspaceId: string, botId: string, 
     ...(input.description !== undefined ? { description: input.description, purpose: input.description } : {}),
     ...(input.supportTone !== undefined ? { support_tone: input.supportTone } : {}),
     ...(input.fallbackMessage !== undefined ? { fallback_message: input.fallbackMessage } : {}),
+    ...(input.sourceReferencesEnabled !== undefined ? { source_references_enabled: input.sourceReferencesEnabled } : {}),
     ...(input.publicWidgetEnabled !== undefined ? { public_widget_enabled: input.publicWidgetEnabled } : {}),
     ...(input.widgetSettings !== undefined ? { widget_settings: input.widgetSettings } : {})
   };

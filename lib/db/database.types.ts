@@ -123,6 +123,7 @@ export type Database = {
           purpose: string | null;
           support_tone: string | null;
           fallback_message: string | null;
+          source_references_enabled: boolean;
           public_widget_enabled: boolean;
           status: BotStatus;
           widget_settings: Json;
@@ -138,6 +139,7 @@ export type Database = {
           purpose?: string | null;
           support_tone?: string | null;
           fallback_message?: string | null;
+          source_references_enabled?: boolean;
           public_widget_enabled?: boolean;
           status?: BotStatus;
           widget_settings?: Json;
@@ -153,6 +155,7 @@ export type Database = {
           purpose?: string | null;
           support_tone?: string | null;
           fallback_message?: string | null;
+          source_references_enabled?: boolean;
           public_widget_enabled?: boolean;
           status?: BotStatus;
           widget_settings?: Json;

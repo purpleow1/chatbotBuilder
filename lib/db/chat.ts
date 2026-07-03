@@ -97,13 +97,16 @@ function buildCitations(matches: KnowledgeSearchMatch[]): ChatCitation[] {
   }));
 }
 
-function buildContextBlock(matches: KnowledgeSearchMatch[]) {
+function buildContextBlock(matches: KnowledgeSearchMatch[], includeSourceNames: boolean) {
   return matches
     .map((match, index) => {
       const sourceName = match.file_name ?? "Knowledge source";
       const page = match.page_number ? `, page ${match.page_number}` : "";
+      const contextLabel = includeSourceNames
+        ? `${sourceName}${page}, chunk ${match.chunk_index + 1}`
+        : `Knowledge excerpt ${index + 1}${page}, chunk ${match.chunk_index + 1}`;
 
-      return `[${index + 1}] ${sourceName}${page}, chunk ${match.chunk_index + 1}\n${match.content}`;
+      return `[${index + 1}] ${contextLabel}\n${match.content}`;
     })
     .join("\n\n");
 }
@@ -141,6 +144,9 @@ function buildGroundedPrompt(bot: BotRecord, userText: string, matches: Knowledg
   const tone = bot.support_tone?.trim() || "helpful, concise, and professional";
   const purpose = bot.purpose?.trim() || bot.description?.trim() || "answer customer support questions";
   const history = buildConversationHistoryBlock(priorMessages);
+  const sourceReferenceInstruction = bot.source_references_enabled
+    ? "When you rely on a source, mention the source name naturally."
+    : "Do not mention source file names or phrases like \"according to the file\". Answer directly using the knowledge context.";
 
   return `You are ${bot.name}, a support assistant for this HelpDock AI bot.
 
@@ -153,12 +159,12 @@ Recent conversation:
 ${history || "No prior turns."}
 
 Knowledge context:
-${buildContextBlock(matches)}
+${buildContextBlock(matches, bot.source_references_enabled)}
 
 User question:
 ${userText}
 
-Answer in plain text. When you rely on a source, mention the source name naturally.`;
+Answer in plain text. ${sourceReferenceInstruction}`;
 }
 
 async function getRecentConversationMessages(workspaceId: string, botId: string, conversationId: string, limit = 8) {

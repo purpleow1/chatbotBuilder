@@ -14,7 +14,7 @@ import { getSupabaseServiceClient } from "@/lib/supabase/service";
 import { applyWidgetPlanLimits, normalizeWidgetSettings, type WidgetSettings } from "@/lib/widget/settings";
 
 const botColumns =
-  "id, workspace_id, created_by, name, description, purpose, support_tone, fallback_message, public_widget_enabled, status, widget_settings, created_at, updated_at";
+  "id, workspace_id, created_by, name, description, purpose, support_tone, fallback_message, source_references_enabled, public_widget_enabled, status, widget_settings, created_at, updated_at";
 
 type WidgetAvailability = {
   bot: BotRecord;

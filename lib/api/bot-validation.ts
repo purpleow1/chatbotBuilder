@@ -16,7 +16,7 @@ const optionalText = (max: number, field: string) =>
       return value.length > 0 ? value : null;
     });
 
-export const botMutationSchema = z.object({
+const botMutationShape = {
   name: z
     .string()
     .trim()
@@ -25,11 +25,17 @@ export const botMutationSchema = z.object({
   description: optionalText(320, "Description"),
   supportTone: optionalText(120, "Support tone"),
   fallbackMessage: optionalText(240, "Fallback message"),
+  sourceReferencesEnabled: z.boolean().default(true),
   publicWidgetEnabled: z.boolean().default(false),
   widgetSettings: widgetSettingsSchema.optional()
-});
+};
 
-export const botUpdateSchema = botMutationSchema.partial().refine((value) => Object.keys(value).length > 0, {
+export const botMutationSchema = z.object(botMutationShape);
+
+export const botUpdateSchema = z.object({
+  ...botMutationShape,
+  sourceReferencesEnabled: z.boolean().optional()
+}).partial().refine((value) => Object.keys(value).length > 0, {
   message: "Provide at least one bot setting to update."
 });
 

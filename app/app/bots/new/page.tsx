@@ -109,6 +109,15 @@ export default async function NewBotPage({
                   maxLength={240}
                 />
               </div>
+              <label className="flex flex-col gap-3 rounded-md border bg-muted/45 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <span>
+                  <span className="block font-medium">Mention source files</span>
+                  <span className="block text-sm text-muted-foreground">
+                    Let the bot reference source filenames in answers when helpful.
+                  </span>
+                </span>
+                <input name="sourceReferencesEnabled" type="checkbox" className="size-5 accent-primary" defaultChecked />
+              </label>
             </CardContent>
           </Card>
 
