@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchInternalApi } from "@/lib/api/server-fetch";
 import type { BotRecord } from "@/lib/db/bots";
+import type { ChatConversationSummary } from "@/lib/db/chat";
 import type { SourceDocumentRecord } from "@/lib/db/documents";
 
 type BotApiResponse = {
@@ -14,6 +15,10 @@ type BotApiResponse = {
 
 type DocumentsApiResponse = {
   documents: SourceDocumentRecord[];
+};
+
+type ConversationsApiResponse = {
+  conversations: ChatConversationSummary[];
 };
 
 function buildReadiness(bot: BotRecord, documents: SourceDocumentRecord[]): ChatReadinessItem[] {
@@ -47,9 +52,10 @@ function buildReadiness(bot: BotRecord, documents: SourceDocumentRecord[]): Chat
 
 export default async function BotChatPage({ params }: { params: Promise<{ botId: string }> }) {
   const { botId } = await params;
-  const [botResult, documentsResult] = await Promise.all([
+  const [botResult, documentsResult, conversationsResult] = await Promise.all([
     fetchInternalApi<BotApiResponse>(`/api/bots/${botId}`),
-    fetchInternalApi<DocumentsApiResponse>(`/api/bots/${botId}/documents`)
+    fetchInternalApi<DocumentsApiResponse>(`/api/bots/${botId}/documents`),
+    fetchInternalApi<ConversationsApiResponse>(`/api/chat?botId=${botId}`)
   ]);
 
   if (!botResult.ok) {
@@ -66,6 +72,7 @@ export default async function BotChatPage({ params }: { params: Promise<{ botId:
 
   const bot = botResult.data.bot;
   const documents = documentsResult.ok ? documentsResult.data.documents : [];
+  const conversations = conversationsResult.ok ? conversationsResult.data.conversations : [];
   const readiness = buildReadiness(bot, documents);
   const readyDocuments = documents.filter((document) => document.status === "ready");
   const processingDocuments = documents.filter((document) => document.status === "queued" || document.status === "processing");
@@ -94,9 +101,16 @@ export default async function BotChatPage({ params }: { params: Promise<{ botId:
           </div>
         )}
 
+        {conversationsResult.ok ? null : (
+          <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            Conversation history could not be loaded: {conversationsResult.error.message}
+          </div>
+        )}
+
         <BotChatClient
           botId={bot.id}
           botName={bot.name}
+          initialConversations={conversations}
           fallbackMessage={bot.fallback_message}
           readyDocumentCount={readyDocuments.length}
         />

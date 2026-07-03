@@ -448,35 +448,32 @@ What you can check:
 - Every destructive action asks for confirmation.
 - A first-time user can understand the next action on each page.
 
-## Step 12: Tests And Quality Gates
+## Step 12: Chat History And Conversation Continuity
 
-Dependency: Steps 1-11
+Dependency: Steps 7-11
 
-Goal: add enough automated coverage to trust the demo.
+Goal: make both chat surfaces feel like real conversations instead of one-off question boxes.
 
 Implementation tasks:
 
-- Add unit tests for:
-  - Plan limit logic
-  - Chunking logic
-  - Prompt/context construction
-  - API validation
-- Add integration tests for key API routes where practical.
-- Add Playwright smoke tests for:
-  - Signup/login or mocked session
-  - Create bot
-  - Upload document
-  - Chat with bot
-  - View billing page
-  - Widget loads
-- Add lint/typecheck/test commands to README.
+- Add per-bot conversation history in the main app chat.
+- Show recent conversations with title, channel, and last message time.
+- Allow selecting an existing conversation and loading persisted messages.
+- Keep the current "New chat" flow.
+- Persist widget `conversationId` in browser storage per bot/visitor.
+- Reload the active widget conversation on open or refresh.
+- Add a lightweight widget "start over" action.
+- Include recent conversation turns in chat prompt construction so follow-up questions work.
+- Keep retrieval grounded in uploaded knowledge and avoid using prior turns to invent unsupported facts.
+- Ensure app conversations remain workspace-scoped and widget conversations remain visitor-scoped.
 
 What you can check:
 
-- `npm run lint` passes.
-- `npm run typecheck` passes.
-- `npm test` or equivalent passes.
-- Playwright smoke test covers the core demo path.
+- Refreshing `/app/bots/[botId]/chat` can restore or reopen prior conversations.
+- The widget keeps the same conversation after closing/reopening or page refresh.
+- A follow-up like "What about the price?" can use prior context from the same conversation.
+- Starting a new chat creates a separate conversation.
+- Widget visitors cannot load another visitor's conversation.
 
 ## Step 13: Deployment Setup
 
@@ -533,6 +530,36 @@ What you can check:
 - Billing, widget, and RAG are all shown.
 - The tutorial does not depend on private local-only state.
 
+## Step 15: Optional Tests And Quality Gates
+
+Dependency: Steps 1-14
+
+Goal: add optional automated coverage if time remains before handoff.
+
+Implementation tasks:
+
+- Add unit tests for:
+  - Plan limit logic
+  - Chunking logic
+  - Prompt/context construction
+  - API validation
+- Add integration tests for key API routes where practical.
+- Add Playwright smoke tests for:
+  - Signup/login or mocked session
+  - Create bot
+  - Upload document
+  - Chat with bot
+  - View billing page
+  - Widget loads
+- Add lint/typecheck/test commands to README.
+
+What you can check:
+
+- `npm run lint` passes.
+- `npm run typecheck` passes.
+- `npm test` or equivalent passes if tests are added.
+- Playwright smoke test covers the core demo path if Playwright is added.
+
 ## Suggested Parallelization
 
 Some work can happen in parallel after the foundations are ready:
@@ -541,7 +568,7 @@ Some work can happen in parallel after the foundations are ready:
 - After Step 4: document management, billing UI, and bot settings can be worked on by separate agents.
 - After Step 7: in-app chat and embeddable widget can be separate agents.
 - Step 11 can run alongside later feature work if agents coordinate on shared UI components.
-- Step 12 should start early for utility logic but finish after features stabilize.
+- Step 15 is optional and should only be added if there is time after the core demo path is stable.
 
 ## Critical Demo Path
 
@@ -552,6 +579,7 @@ The MVP is ready when this path works end to end:
 3. User uploads a document.
 4. Document is processed into searchable chunks.
 5. User asks a question in the in-app chat and receives a grounded answer.
-6. User copies an embed snippet into a test page.
-7. External widget answers from the same bot.
-8. Free plan limits are visible and at least one upgrade flow works.
+6. User can continue or reopen a prior in-app conversation.
+7. User copies an embed snippet into a test page.
+8. External widget answers from the same bot and keeps the same visitor conversation after refresh.
+9. Free plan limits are visible and at least one upgrade flow works.

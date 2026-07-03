@@ -30,6 +30,10 @@ export type ChatConversation = {
   last_message_at: string | null;
 };
 
+export type ChatConversationSummary = ChatConversation & {
+  message_count: number;
+};
+
 export type ChatMessage = {
   id: string;
   workspace_id: string;
@@ -104,6 +108,28 @@ function buildContextBlock(matches: KnowledgeSearchMatch[]) {
     .join("\n\n");
 }
 
+function buildConversationHistoryBlock(messages: ChatMessage[]) {
+  return messages
+    .filter((message) => message.role === "user" || message.role === "assistant")
+    .map((message) => `${message.role === "user" ? "User" : "Assistant"}: ${message.content_text.trim()}`)
+    .filter((line) => line.length > 0)
+    .join("\n");
+}
+
+function buildRetrievalQuery(userText: string, messages: ChatMessage[]) {
+  const recentUserTurns = messages
+    .filter((message) => message.role === "user")
+    .slice(-3)
+    .map((message) => message.content_text.trim())
+    .filter(Boolean);
+
+  if (recentUserTurns.length === 0) {
+    return userText;
+  }
+
+  return [...recentUserTurns, userText].join("\n");
+}
+
 function buildFallbackAnswer(bot: BotRecord) {
   return (
     bot.fallback_message?.trim() ||
@@ -111,16 +137,20 @@ function buildFallbackAnswer(bot: BotRecord) {
   );
 }
 
-function buildGroundedPrompt(bot: BotRecord, userText: string, matches: KnowledgeSearchMatch[]) {
+function buildGroundedPrompt(bot: BotRecord, userText: string, matches: KnowledgeSearchMatch[], priorMessages: ChatMessage[]) {
   const tone = bot.support_tone?.trim() || "helpful, concise, and professional";
   const purpose = bot.purpose?.trim() || bot.description?.trim() || "answer customer support questions";
+  const history = buildConversationHistoryBlock(priorMessages);
 
   return `You are ${bot.name}, a support assistant for this HelpDock AI bot.
 
 Purpose: ${purpose}
 Tone: ${tone}
 
-Use only the knowledge context below to answer the user's question. If the answer is not in the context, say you do not have enough information and ask for a more specific question or suggest contacting support. Do not invent policy, pricing, setup, legal, or troubleshooting details.
+Use the recent conversation only to understand follow-up questions, pronouns, and topic references. Use only the knowledge context below as the source of factual claims. If the answer is not in the knowledge context, say you do not have enough information and ask for a more specific question or suggest contacting support. Do not invent policy, pricing, setup, legal, or troubleshooting details.
+
+Recent conversation:
+${history || "No prior turns."}
 
 Knowledge context:
 ${buildContextBlock(matches)}
@@ -129,6 +159,25 @@ User question:
 ${userText}
 
 Answer in plain text. When you rely on a source, mention the source name naturally.`;
+}
+
+async function getRecentConversationMessages(workspaceId: string, botId: string, conversationId: string, limit = 8) {
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("messages")
+    .select(messageColumns)
+    .eq("workspace_id", workspaceId)
+    .eq("bot_id", botId)
+    .eq("conversation_id", conversationId)
+    .in("role", ["user", "assistant"])
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    throw error;
+  }
+
+  return ((data ?? []) as ChatMessage[]).reverse();
 }
 
 async function getExistingConversation(
@@ -273,6 +322,9 @@ export async function createChatTurn(workspaceId: string, input: CreateChatMessa
         channel,
         title: createConversationTitle(userText)
       });
+  const priorMessages = input.conversationId
+    ? await getRecentConversationMessages(workspaceId, input.botId, conversation.id)
+    : [];
 
   const userMessage = await insertMessage({
     workspaceId,
@@ -285,12 +337,12 @@ export async function createChatTurn(workspaceId: string, input: CreateChatMessa
       source: "api_chat"
     }
   });
-  const matches = await searchBotKnowledge(workspaceId, input.botId, userText, 5);
+  const matches = await searchBotKnowledge(workspaceId, input.botId, buildRetrievalQuery(userText, priorMessages), 5);
   const relevantMatches = matches.filter((match) => match.similarity >= 0.15);
   const citations = buildCitations(relevantMatches);
   const chatResult =
     relevantMatches.length > 0
-      ? await generateGeminiChatResponse(buildGroundedPrompt(bot, userText, relevantMatches))
+      ? await generateGeminiChatResponse(buildGroundedPrompt(bot, userText, relevantMatches, priorMessages))
       : {
           text: buildFallbackAnswer(bot),
           inputTokens: null,
@@ -364,10 +416,52 @@ export async function createChatTurn(workspaceId: string, input: CreateChatMessa
   };
 }
 
-export async function getChatConversation(workspaceId: string, botId: string, conversationId: string) {
+export async function listChatConversations(
+  workspaceId: string,
+  botId: string,
+  options: { channel?: "app" | "widget"; visitorId?: string; limit?: number } = {}
+) {
   await getBotForWorkspace(workspaceId, botId);
 
-  const conversation = await getExistingConversation(workspaceId, botId, conversationId);
+  const supabase = getSupabaseServiceClient();
+  let query = supabase
+    .from("conversations")
+    .select(conversationColumns)
+    .eq("workspace_id", workspaceId)
+    .eq("bot_id", botId)
+    .eq("status", "open")
+    .order("last_message_at", { ascending: false, nullsFirst: false })
+    .limit(options.limit ?? 20);
+
+  if (options.channel) {
+    query = query.eq("channel", options.channel);
+  }
+
+  if (options.channel === "widget") {
+    query = query.eq("visitor_id", options.visitorId ?? "");
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw error;
+  }
+
+  return ((data ?? []) as ChatConversation[]).map((conversation) => ({
+    ...conversation,
+    message_count: 0
+  }));
+}
+
+export async function getChatConversation(
+  workspaceId: string,
+  botId: string,
+  conversationId: string,
+  options: { channel?: "app" | "widget"; visitorId?: string } = {}
+) {
+  await getBotForWorkspace(workspaceId, botId);
+
+  const conversation = await getExistingConversation(workspaceId, botId, conversationId, options);
   const supabase = getSupabaseServiceClient();
   const { data: messages, error } = await supabase
     .from("messages")

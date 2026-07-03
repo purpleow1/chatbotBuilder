@@ -2,7 +2,7 @@
 
 import { FormEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import { Loader2, MessageCircle, Send, TriangleAlert } from "lucide-react";
+import { Loader2, MessageCircle, RotateCcw, Send, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -44,6 +44,13 @@ type WidgetChatApiResponse = {
   };
 };
 
+type WidgetChatLoadApiResponse = {
+  conversation: {
+    id: string;
+  };
+  messages: WidgetChatApiMessage[];
+};
+
 type WidgetChatClientProps = {
   widget: PublicWidgetConfig;
   className?: string;
@@ -61,6 +68,19 @@ function getVisitorId(botId: string) {
 
   window.localStorage.setItem(key, created);
   return created;
+}
+
+function getConversationStorageKey(botId: string, visitorId: string) {
+  return `helpdock:${botId}:${visitorId}:conversation`;
+}
+
+function createWelcomeMessage(message: string): ChatMessage {
+  return {
+    id: "welcome",
+    role: "assistant",
+    content: message,
+    citations: []
+  };
 }
 
 function parseCitations(value: unknown): ChatCitation[] {
@@ -127,20 +147,14 @@ export function WidgetChatClient({ widget, className }: WidgetChatClientProps) {
   const { settings } = widget;
   const [visitorId, setVisitorId] = useState<string | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: "welcome",
-      role: "assistant",
-      content: settings.welcomeMessage,
-      citations: []
-    }
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([createWelcomeMessage(settings.welcomeMessage)]);
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const trimmedInput = input.trim();
-  const canSend = Boolean(visitorId) && trimmedInput.length > 0 && !isSending;
+  const canSend = Boolean(visitorId) && trimmedInput.length > 0 && !isSending && !isLoadingHistory;
   const themeStyle = useMemo(
     () =>
       ({
@@ -152,6 +166,65 @@ export function WidgetChatClient({ widget, className }: WidgetChatClientProps) {
   useEffect(() => {
     setVisitorId(getVisitorId(widget.botId));
   }, [widget.botId]);
+
+  useEffect(() => {
+    if (!visitorId) {
+      return;
+    }
+
+    const storedConversationId = window.localStorage.getItem(getConversationStorageKey(widget.botId, visitorId));
+
+    if (!storedConversationId) {
+      return;
+    }
+
+    const currentVisitorId = visitorId;
+    const currentConversationId = storedConversationId;
+    let canceled = false;
+
+    async function loadStoredConversation() {
+      setIsLoadingHistory(true);
+      setError(null);
+
+      try {
+        const params = new URLSearchParams({
+          conversationId: currentConversationId,
+          visitorId: currentVisitorId
+        });
+        const response = await fetch(`/api/widget/${widget.botId}/chat?${params.toString()}`);
+        const payload = (await response.json().catch(() => null)) as WidgetChatLoadApiResponse | unknown;
+
+        if (!response.ok) {
+          window.localStorage.removeItem(getConversationStorageKey(widget.botId, currentVisitorId));
+          return;
+        }
+
+        if (canceled) {
+          return;
+        }
+
+        const chatPayload = payload as WidgetChatLoadApiResponse;
+        const loadedMessages = chatPayload.messages
+          .map((message) => messageFromApi(message))
+          .filter((message): message is ChatMessage => Boolean(message));
+
+        setConversationId(chatPayload.conversation.id);
+        setMessages(loadedMessages.length > 0 ? loadedMessages : [createWelcomeMessage(settings.welcomeMessage)]);
+      } catch {
+        window.localStorage.removeItem(getConversationStorageKey(widget.botId, currentVisitorId));
+      } finally {
+        if (!canceled) {
+          setIsLoadingHistory(false);
+        }
+      }
+    }
+
+    void loadStoredConversation();
+
+    return () => {
+      canceled = true;
+    };
+  }, [settings.welcomeMessage, visitorId, widget.botId]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -207,6 +280,7 @@ export function WidgetChatClient({ widget, className }: WidgetChatClientProps) {
       );
 
       setConversationId(chatPayload.conversation.id);
+      window.localStorage.setItem(getConversationStorageKey(widget.botId, visitorId), chatPayload.conversation.id);
       setMessages((current) => {
         const withoutLocal = current.filter((message) => message.id !== localUserMessage.id);
 
@@ -232,6 +306,17 @@ export function WidgetChatClient({ widget, className }: WidgetChatClientProps) {
     }
   }
 
+  function startOver() {
+    if (visitorId) {
+      window.localStorage.removeItem(getConversationStorageKey(widget.botId, visitorId));
+    }
+
+    setConversationId(null);
+    setMessages([createWelcomeMessage(settings.welcomeMessage)]);
+    setInput("");
+    setError(null);
+  }
+
   return (
     <section
       className={cn("flex h-dvh min-h-[420px] w-full flex-col overflow-hidden bg-white text-slate-950", className)}
@@ -241,13 +326,30 @@ export function WidgetChatClient({ widget, className }: WidgetChatClientProps) {
         <span className="grid size-10 shrink-0 place-items-center rounded-md bg-white/18 text-sm font-semibold">
           {settings.botAvatarInitials}
         </span>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h1 className="truncate text-sm font-semibold">{settings.botDisplayName}</h1>
           <p className="truncate text-xs text-white/80">{widget.description || "Answers from our knowledge base"}</p>
         </div>
+        <button
+          type="button"
+          onClick={startOver}
+          aria-label="Start a new chat"
+          className="grid size-9 shrink-0 place-items-center rounded-md text-white/85 transition hover:bg-white/15 hover:text-white"
+        >
+          <RotateCcw className="size-4" />
+        </button>
       </header>
 
       <div ref={scrollRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-slate-50 p-4">
+        {isLoadingHistory ? (
+          <div className="flex justify-start">
+            <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-500 shadow-sm">
+              <Loader2 className="size-4 animate-spin" />
+              Loading conversation...
+            </div>
+          </div>
+        ) : null}
+
         {messages.map((message) => (
           <article key={message.id} className={cn("flex", message.role === "user" ? "justify-end" : "justify-start")}>
             <div
@@ -297,7 +399,7 @@ export function WidgetChatClient({ widget, className }: WidgetChatClientProps) {
             className="min-h-11 resize-none border-slate-300 text-sm focus-visible:ring-[var(--widget-primary)]"
             rows={1}
             maxLength={4000}
-            disabled={isSending}
+            disabled={isSending || isLoadingHistory}
           />
           <Button
             type="submit"

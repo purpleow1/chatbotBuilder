@@ -1,6 +1,12 @@
 import "server-only";
 import { ApiError } from "@/lib/api/errors";
-import { createChatTurn, type ChatCitation, type ChatConversation, type ChatMessage } from "@/lib/db/chat";
+import {
+  createChatTurn,
+  getChatConversation,
+  type ChatCitation,
+  type ChatConversation,
+  type ChatMessage
+} from "@/lib/db/chat";
 import type { BotRecord } from "@/lib/db/bots";
 import type { SubscriptionPlan, SubscriptionStatus } from "@/lib/db/database.types";
 import { planRemovesBranding } from "@/lib/plans";
@@ -153,5 +159,21 @@ export async function createWidgetChatTurn(input: WidgetChatInput): Promise<{
         text: input.text
       }
     ]
+  });
+}
+
+export async function getWidgetChatConversation(input: {
+  botId: string;
+  conversationId: string;
+  visitorId: string;
+}): Promise<{
+  conversation: ChatConversation;
+  messages: ChatMessage[];
+}> {
+  const { bot } = await getPublicWidgetAvailability(input.botId);
+
+  return getChatConversation(bot.workspace_id, bot.id, input.conversationId, {
+    channel: "widget",
+    visitorId: input.visitorId
   });
 }

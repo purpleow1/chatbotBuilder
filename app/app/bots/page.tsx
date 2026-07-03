@@ -132,7 +132,7 @@ export default async function BotsPage({
                   <Button variant="outline" asChild>
                     <Link href={`/app/bots/${bot.id}/chat`}>
                       <MessageSquare className="size-4" />
-                      Test
+                      Test chat
                     </Link>
                   </Button>
                   <Button variant="ghost" size="icon" aria-label={`Open settings for ${bot.name}`} asChild>

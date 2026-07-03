@@ -1,13 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z, ZodError } from "zod";
 import { apiErrorResponse, ApiError } from "@/lib/api/errors";
-import { createWidgetChatTurn } from "@/lib/db/widget";
+import { createWidgetChatTurn, getWidgetChatConversation } from "@/lib/db/widget";
 
 export const runtime = "nodejs";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type"
 };
 
@@ -19,6 +19,11 @@ const widgetChatRequestSchema = z.object({
   })
 });
 
+const widgetChatQuerySchema = z.object({
+  conversationId: z.string().uuid("Choose a valid conversation."),
+  visitorId: z.string().trim().min(8, "Visitor id is required.").max(120, "Visitor id is too long.")
+});
+
 function validationError(error: ZodError) {
   return new ApiError(400, error.issues[0]?.message ?? "Widget chat request is invalid.", "invalid_widget_chat_request");
 }
@@ -28,6 +33,37 @@ export async function OPTIONS() {
     status: 204,
     headers: corsHeaders
   });
+}
+
+export async function GET(request: NextRequest, { params }: { params: Promise<{ botId: string }> }) {
+  try {
+    const { botId } = await params;
+    const { searchParams } = new URL(request.url);
+    const parsed = widgetChatQuerySchema.safeParse({
+      conversationId: searchParams.get("conversationId"),
+      visitorId: searchParams.get("visitorId")
+    });
+
+    if (!parsed.success) {
+      throw validationError(parsed.error);
+    }
+
+    const result = await getWidgetChatConversation({
+      botId,
+      conversationId: parsed.data.conversationId,
+      visitorId: parsed.data.visitorId
+    });
+
+    return NextResponse.json(result, {
+      headers: corsHeaders
+    });
+  } catch (error) {
+    const response = apiErrorResponse(error);
+
+    Object.entries(corsHeaders).forEach(([key, value]) => response.headers.set(key, value));
+
+    return response;
+  }
 }
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ botId: string }> }) {

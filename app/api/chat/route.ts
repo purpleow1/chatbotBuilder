@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z, ZodError } from "zod";
 import { apiErrorResponse, ApiError } from "@/lib/api/errors";
 import { applyAuthCookies, authenticateRequest } from "@/lib/db/auth";
-import { createChatTurn, getChatConversation } from "@/lib/db/chat";
+import { createChatTurn, getChatConversation, listChatConversations } from "@/lib/db/chat";
 import { ensureAccountForUser } from "@/lib/db/onboarding";
 
 export const runtime = "nodejs";
@@ -32,7 +32,7 @@ const chatRequestSchema = z.object({
 
 const chatQuerySchema = z.object({
   botId: z.string().uuid("Choose a valid bot."),
-  conversationId: z.string().uuid("Choose a valid conversation.")
+  conversationId: z.string().uuid("Choose a valid conversation.").optional()
 });
 
 function validationError(error: ZodError) {
@@ -46,18 +46,22 @@ export async function GET(request: NextRequest) {
     const account = await ensureAccountForUser(user);
     const parsed = chatQuerySchema.safeParse({
       botId: searchParams.get("botId"),
-      conversationId: searchParams.get("conversationId")
+      conversationId: searchParams.get("conversationId") ?? undefined
     });
 
     if (!parsed.success) {
       throw validationError(parsed.error);
     }
 
-    const result = await getChatConversation(
-      account.activeWorkspace.id,
-      parsed.data.botId,
-      parsed.data.conversationId
-    );
+    const result = parsed.data.conversationId
+      ? await getChatConversation(account.activeWorkspace.id, parsed.data.botId, parsed.data.conversationId, {
+          channel: "app"
+        })
+      : {
+          conversations: await listChatConversations(account.activeWorkspace.id, parsed.data.botId, {
+            channel: "app"
+          })
+        };
     const response = NextResponse.json(result);
 
     return applyAuthCookies(response, cookiesToSet);
