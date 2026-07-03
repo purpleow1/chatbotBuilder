@@ -6,10 +6,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { StatCard } from "@/components/stat-card";
 import { fetchInternalApi } from "@/lib/api/server-fetch";
 import type { BotCapacity, BotListItem } from "@/lib/db/bots";
+import type { SourceDocumentRecord } from "@/lib/db/documents";
+import type { SubscriptionRecord, WorkspaceUsage } from "@/lib/db/subscriptions";
 
 type BotsApiResponse = {
   bots: BotListItem[];
   capacity: BotCapacity;
+};
+
+type BillingApiResponse = {
+  subscription: SubscriptionRecord;
+  usage: WorkspaceUsage;
+};
+
+type DocumentsApiResponse = {
+  documents: SourceDocumentRecord[];
 };
 
 const recentActivity = [
@@ -18,18 +29,64 @@ const recentActivity = [
   "Widget theme updated for Acme Support"
 ];
 
-export default async function AppDashboardPage() {
-  const result = await fetchInternalApi<BotsApiResponse>("/api/bots");
+function formatResetDate(value: string) {
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric"
+  }).format(new Date(value));
+}
 
-  if (!result.ok) {
-    if (result.status === 401) {
+function formatPlan(plan: string) {
+  return plan.charAt(0).toUpperCase() + plan.slice(1);
+}
+
+function getKnowledgeHelper(documents: SourceDocumentRecord[] | null) {
+  if (!documents) {
+    return "Document status unavailable";
+  }
+
+  const ready = documents.filter((document) => document.status === "ready").length;
+  const processing = documents.filter((document) => document.status === "queued" || document.status === "processing").length;
+  const failed = documents.filter((document) => document.status === "failed").length;
+  const parts = [
+    `${ready} ready`,
+    processing > 0 ? `${processing} processing` : null,
+    failed > 0 ? `${failed} failed` : null
+  ].filter(Boolean);
+
+  return parts.join(", ");
+}
+
+export default async function AppDashboardPage() {
+  const [botsResult, billingResult] = await Promise.all([
+    fetchInternalApi<BotsApiResponse>("/api/bots"),
+    fetchInternalApi<BillingApiResponse>("/api/billing")
+  ]);
+
+  if (!botsResult.ok) {
+    if (botsResult.status === 401) {
       redirect("/login?next=/app");
     }
 
-    throw new Error(result.error.message);
+    throw new Error(botsResult.error.message);
   }
 
-  const { bots, capacity } = result.data;
+  if (!billingResult.ok) {
+    if (billingResult.status === 401) {
+      redirect("/login?next=/app");
+    }
+
+    throw new Error(billingResult.error.message);
+  }
+
+  const { bots } = botsResult.data;
+  const { subscription, usage } = billingResult.data;
+  const documentResults = await Promise.all(
+    bots.map((bot) => fetchInternalApi<DocumentsApiResponse>(`/api/bots/${bot.id}/documents`))
+  );
+  const documents = documentResults.every((documentResult) => documentResult.ok)
+    ? documentResults.flatMap((documentResult) => (documentResult.ok ? documentResult.data.documents : []))
+    : null;
   const firstBot = bots[0];
 
   return (
@@ -51,9 +108,19 @@ export default async function AppDashboardPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <StatCard icon={Bot} label="Bots" value={`${capacity.used} / ${capacity.bot_limit}`} helper={`${capacity.plan} plan limit`} />
-        <StatCard icon={FileText} label="Knowledge docs" value="3 / 5" helper="2 ready, 1 processing" />
-        <StatCard icon={MessageSquare} label="Monthly messages" value="42 / 100" helper="Resets Aug 1" />
+        <StatCard icon={Bot} label="Bots" value={`${usage.botCount} / ${subscription.bot_limit}`} helper={`${formatPlan(subscription.plan)} plan limit`} />
+        <StatCard
+          icon={FileText}
+          label="Knowledge docs"
+          value={`${usage.documentCount} / ${subscription.document_limit}`}
+          helper={getKnowledgeHelper(documents)}
+        />
+        <StatCard
+          icon={MessageSquare}
+          label="Monthly messages"
+          value={`${usage.monthlyMessageCount} / ${subscription.monthly_message_limit}`}
+          helper={`Resets ${formatResetDate(subscription.current_period_end)}`}
+        />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
@@ -62,18 +129,25 @@ export default async function AppDashboardPage() {
             <CardTitle>Launch checklist</CardTitle>
             <CardDescription>These are the surfaces later steps will connect to real data.</CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-3 sm:grid-cols-2">
-            {[
-              ["Create bot profile", "Set tone, fallback copy, and widget availability."],
-              ["Upload docs", "Add PDFs, markdown, or text files as searchable knowledge."],
-              ["Test answers", "Ask real support questions before publishing."],
-              ["Install widget", "Copy one script tag into a customer site."]
-            ].map(([title, description]) => (
-              <div key={title} className="rounded-md border bg-card p-4">
-                <h3 className="font-medium">{title}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-              </div>
-            ))}
+          <CardContent>
+            <ol className="relative space-y-5 before:absolute before:bottom-4 before:left-4 before:top-4 before:w-px before:bg-border">
+              {[
+                ["Create bot profile", "Set tone, fallback copy, and widget availability."],
+                ["Upload docs", "Add PDFs, markdown, or text files as searchable knowledge."],
+                ["Test answers", "Ask real support questions before publishing."],
+                ["Install widget", "Copy one script tag into a customer site."]
+              ].map(([title, description], index) => (
+                <li key={title} className="relative flex gap-4">
+                  <span className="z-10 flex size-8 shrink-0 items-center justify-center rounded-full border bg-background text-sm font-semibold text-primary">
+                    {index + 1}
+                  </span>
+                  <div className="min-w-0 pt-0.5">
+                    <h3 className="font-medium">{title}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
           </CardContent>
         </Card>
 

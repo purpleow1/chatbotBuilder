@@ -33,30 +33,31 @@ export const PLAN_CONFIGS: Record<SubscriptionPlan, PlanConfig> = {
     name: "Pro",
     price: "$29",
     description: "Launch polished support widgets for growing teams.",
-    botLimit: 3,
+    botLimit: 10,
     documentLimit: 100,
     monthlyMessageLimit: 2000,
     removesBranding: true,
     customTheme: true,
     stripePriceIdEnvVar: "STRIPE_PRO_PRICE_ID",
-    features: ["3 bots", "100 documents", "2,000 monthly messages", "Remove widget branding", "Custom widget theme"]
+    features: ["10 bots", "100 documents", "2,000 monthly messages", "Remove widget branding", "Custom widget theme"]
   },
   business: {
     plan: "business",
     name: "Business",
     price: "$99",
-    description: "Demo-scale advanced limits and team-ready controls.",
-    botLimit: 99,
+    description: "Scale support across more bots with team-ready controls.",
+    botLimit: 30,
     documentLimit: 500,
     monthlyMessageLimit: 10000,
     removesBranding: true,
     customTheme: true,
     stripePriceIdEnvVar: "STRIPE_BUSINESS_PRICE_ID",
     features: [
-      "Unlimited bots (demo)",
+      "30 bots",
       "500 documents",
       "10,000 monthly messages",
       "Remove widget branding",
+      "Custom widget theme",
       "Priority ingestion",
       "Advanced analytics"
     ]

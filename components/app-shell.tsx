@@ -10,6 +10,7 @@ import {
   LogOut
 } from "lucide-react";
 import { logout } from "@/app/app/actions";
+import { MobileNav } from "@/components/mobile-nav";
 import { Button } from "@/components/ui/button";
 import type { SubscriptionPlan, WorkspaceRole } from "@/lib/db/database.types";
 import { cn } from "@/lib/utils";
@@ -102,12 +103,15 @@ export function AppShell({ children, account }: { children: React.ReactNode; acc
 
       <div className="lg:pl-64">
         <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur sm:px-6 lg:px-8">
-          <Link href="/app" className="flex items-center gap-2 lg:hidden">
-            <span className="flex size-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <BotMessageSquare className="size-5" />
-            </span>
-            <span className="font-semibold">HelpDock AI</span>
-          </Link>
+          <div className="flex items-center gap-2">
+            <MobileNav planName={planName} planSummary={planSummary} />
+            <Link href="/app" className="flex items-center gap-2 lg:hidden">
+              <span className="flex size-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
+                <BotMessageSquare className="size-5" />
+              </span>
+              <span className="font-semibold">HelpDock AI</span>
+            </Link>
+          </div>
           <div className="hidden lg:block" />
           <div className="flex items-center gap-3">
             <label className="hidden min-w-0 items-center gap-2 rounded-md border bg-card px-3 py-2 sm:flex">
