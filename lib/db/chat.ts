@@ -46,7 +46,9 @@ export type ChatMessage = {
 
 export type CreateChatMessageInput = {
   botId: string;
-  userId: string;
+  userId?: string;
+  visitorId?: string;
+  channel?: "app" | "widget";
   conversationId?: string;
   parts: MessagePart[];
 };
@@ -128,7 +130,12 @@ ${userText}
 Answer in plain text. When you rely on a source, mention the source name naturally.`;
 }
 
-async function getExistingConversation(workspaceId: string, botId: string, conversationId: string) {
+async function getExistingConversation(
+  workspaceId: string,
+  botId: string,
+  conversationId: string,
+  options: { channel?: "app" | "widget"; visitorId?: string } = {}
+) {
   const supabase = getSupabaseServiceClient();
   const { data, error } = await supabase
     .from("conversations")
@@ -150,19 +157,35 @@ async function getExistingConversation(workspaceId: string, botId: string, conve
     throw new ApiError(409, "This conversation is closed.", "conversation_closed");
   }
 
+  if (options.channel && data.channel !== options.channel) {
+    throw new ApiError(404, "Conversation not found for this bot.", "conversation_not_found");
+  }
+
+  if (options.channel === "widget" && data.visitor_id !== options.visitorId) {
+    throw new ApiError(404, "Conversation not found for this visitor.", "conversation_not_found");
+  }
+
   return data as ChatConversation;
 }
 
-async function createConversation(workspaceId: string, botId: string, userId: string, title: string) {
+async function createConversation(input: {
+  workspaceId: string;
+  botId: string;
+  userId?: string;
+  visitorId?: string;
+  channel: "app" | "widget";
+  title: string;
+}) {
   const supabase = getSupabaseServiceClient();
   const { data, error } = await supabase
     .from("conversations")
     .insert({
-      workspace_id: workspaceId,
-      bot_id: botId,
-      started_by: userId,
-      channel: "app",
-      title,
+      workspace_id: input.workspaceId,
+      bot_id: input.botId,
+      started_by: input.userId,
+      visitor_id: input.visitorId,
+      channel: input.channel,
+      title: input.title,
       last_message_at: new Date().toISOString()
     })
     .select(conversationColumns)
@@ -214,9 +237,14 @@ async function insertMessage(input: {
 
 export async function createChatTurn(workspaceId: string, input: CreateChatMessageInput) {
   const bot = await getBotForWorkspace(workspaceId, input.botId);
+  const channel = input.channel ?? "app";
 
   if (bot.status === "disabled") {
     throw new ApiError(403, "This bot is disabled.", "bot_disabled");
+  }
+
+  if (channel === "widget" && !input.visitorId) {
+    throw new ApiError(400, "Widget chat requires a visitor id.", "missing_visitor_id");
   }
 
   const userText = extractTextFromParts(input.parts);
@@ -226,8 +254,18 @@ export async function createChatTurn(workspaceId: string, input: CreateChatMessa
   }
 
   const conversation = input.conversationId
-    ? await getExistingConversation(workspaceId, input.botId, input.conversationId)
-    : await createConversation(workspaceId, input.botId, input.userId, createConversationTitle(userText));
+    ? await getExistingConversation(workspaceId, input.botId, input.conversationId, {
+        channel,
+        visitorId: input.visitorId
+      })
+    : await createConversation({
+        workspaceId,
+        botId: input.botId,
+        userId: input.userId,
+        visitorId: input.visitorId,
+        channel,
+        title: createConversationTitle(userText)
+      });
 
   const userMessage = await insertMessage({
     workspaceId,

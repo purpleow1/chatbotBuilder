@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { widgetSettingsSchema } from "@/lib/widget/settings";
 
 const optionalText = (max: number, field: string) =>
   z
@@ -24,7 +25,8 @@ export const botMutationSchema = z.object({
   description: optionalText(320, "Description"),
   supportTone: optionalText(120, "Support tone"),
   fallbackMessage: optionalText(240, "Fallback message"),
-  publicWidgetEnabled: z.boolean().default(false)
+  publicWidgetEnabled: z.boolean().default(false),
+  widgetSettings: widgetSettingsSchema.optional()
 });
 
 export const botUpdateSchema = botMutationSchema.partial().refine((value) => Object.keys(value).length > 0, {
@@ -33,4 +35,3 @@ export const botUpdateSchema = botMutationSchema.partial().refine((value) => Obj
 
 export type BotMutationInput = z.infer<typeof botMutationSchema>;
 export type BotUpdateInput = z.infer<typeof botUpdateSchema>;
-

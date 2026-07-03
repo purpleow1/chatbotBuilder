@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { Copy, FileText, MessageSquare, Palette, Save, Settings, Trash2, Upload } from "lucide-react";
+import { FileText, MessageSquare, Palette, Save, Settings, Trash2, Upload } from "lucide-react";
 import { deleteBot, deleteDocument, retryDocumentIngestion, updateBot, uploadDocument } from "@/app/app/bots/actions";
 import { SubmitButton } from "@/components/submit-button";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { formatFileSize, MAX_SOURCE_DOCUMENT_BYTES, SUPPORTED_SOURCE_EXTENSIONS 
 import { fetchInternalApi } from "@/lib/api/server-fetch";
 import type { BotRecord } from "@/lib/db/bots";
 import type { SourceDocumentRecord } from "@/lib/db/documents";
+import { normalizeWidgetSettings } from "@/lib/widget/settings";
 
 type BotApiResponse = {
   bot: BotRecord;
@@ -113,7 +114,9 @@ export default async function BotDetailPage({
   const documents = documentsResult.ok ? documentsResult.data.documents : [];
   const documentsError = documentsResult.ok ? null : documentsResult.error.message;
   const notice = getNotice(query);
-  const embedSnippet = `<script src="${process.env.APP_URL ?? "http://localhost:3000"}/embed.js" data-bot-id="${bot.id}"></script>`;
+  const widgetSettings = normalizeWidgetSettings(bot.widget_settings, bot.name);
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? process.env.APP_URL ?? "http://localhost:3000";
+  const embedSnippet = `<script src="${appUrl}/embed.js" data-bot-id="${bot.id}"></script>`;
   const acceptedExtensions = SUPPORTED_SOURCE_EXTENSIONS.join(",");
 
   return (
@@ -192,6 +195,62 @@ export default async function BotDetailPage({
                   defaultChecked={bot.public_widget_enabled}
                 />
               </label>
+
+              <div className="grid gap-4 rounded-md border bg-muted/35 p-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="widgetBotDisplayName">Widget bot name</Label>
+                  <Input
+                    id="widgetBotDisplayName"
+                    name="widgetBotDisplayName"
+                    defaultValue={widgetSettings.botDisplayName}
+                    maxLength={80}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="widgetBotAvatarInitials">Avatar initials</Label>
+                  <Input
+                    id="widgetBotAvatarInitials"
+                    name="widgetBotAvatarInitials"
+                    defaultValue={widgetSettings.botAvatarInitials}
+                    maxLength={3}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="widgetPrimaryColor">Primary color</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="widgetPrimaryColor"
+                      name="widgetPrimaryColor"
+                      type="color"
+                      defaultValue={widgetSettings.primaryColor}
+                      className="h-10 w-14 p-1"
+                      aria-label="Widget primary color"
+                    />
+                    <Input defaultValue={widgetSettings.primaryColor} readOnly aria-label="Selected widget primary color" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="widgetLauncherPosition">Launcher position</Label>
+                  <select
+                    id="widgetLauncherPosition"
+                    name="widgetLauncherPosition"
+                    defaultValue={widgetSettings.launcherPosition}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    <option value="bottom-right">Bottom right</option>
+                    <option value="bottom-left">Bottom left</option>
+                  </select>
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="widgetWelcomeMessage">Welcome message</Label>
+                  <Textarea
+                    id="widgetWelcomeMessage"
+                    name="widgetWelcomeMessage"
+                    defaultValue={widgetSettings.welcomeMessage}
+                    maxLength={180}
+                  />
+                </div>
+              </div>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <SubmitButton pendingLabel="Saving...">
                   <Save className="size-4" />
@@ -208,20 +267,20 @@ export default async function BotDetailPage({
               <Palette className="size-5" />
               Widget
             </CardTitle>
-            <CardDescription>Install snippet preview. The real loader is connected in Step 9.</CardDescription>
+            <CardDescription>Copy this script into a plain HTML page or app template.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="rounded-md border bg-muted p-3">
               <code className="break-all text-sm">{embedSnippet}</code>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" type="button">
-                <Copy className="size-4" />
-                Copy snippet
-              </Button>
               <Button variant="outline" asChild>
                 <Link href={`/widget/${bot.id}`}>Preview widget</Link>
               </Button>
+            </div>
+            <div className="rounded-md border bg-muted/35 p-3 text-sm text-muted-foreground">
+              The loader fetches public widget config with CORS enabled, paints the launcher, and opens this bot in an
+              iframe. Set <code className="text-foreground">NEXT_PUBLIC_APP_URL</code> or <code className="text-foreground">APP_URL</code> before deploying.
             </div>
           </CardContent>
         </Card>

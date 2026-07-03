@@ -3,6 +3,7 @@ import { ApiError } from "@/lib/api/errors";
 import type { BotMutationInput, BotUpdateInput } from "@/lib/api/bot-validation";
 import type { BotStatus, SubscriptionPlan } from "@/lib/db/database.types";
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
+import { normalizeWidgetSettings } from "@/lib/widget/settings";
 
 const botColumns =
   "id, workspace_id, created_by, name, description, purpose, support_tone, fallback_message, public_widget_enabled, status, widget_settings, created_at, updated_at";
@@ -160,6 +161,7 @@ export async function createBotForWorkspace(workspaceId: string, userId: string,
       support_tone: input.supportTone,
       fallback_message: input.fallbackMessage,
       public_widget_enabled: input.publicWidgetEnabled,
+      widget_settings: normalizeWidgetSettings(input.widgetSettings, input.name),
       status: "draft"
     })
     .select(botColumns)
@@ -180,7 +182,8 @@ export async function updateBotForWorkspace(workspaceId: string, botId: string, 
     ...(input.description !== undefined ? { description: input.description, purpose: input.description } : {}),
     ...(input.supportTone !== undefined ? { support_tone: input.supportTone } : {}),
     ...(input.fallbackMessage !== undefined ? { fallback_message: input.fallbackMessage } : {}),
-    ...(input.publicWidgetEnabled !== undefined ? { public_widget_enabled: input.publicWidgetEnabled } : {})
+    ...(input.publicWidgetEnabled !== undefined ? { public_widget_enabled: input.publicWidgetEnabled } : {}),
+    ...(input.widgetSettings !== undefined ? { widget_settings: input.widgetSettings } : {})
   };
   const supabase = getSupabaseServiceClient();
   const { data, error } = await supabase
@@ -208,4 +211,3 @@ export async function deleteBotForWorkspace(workspaceId: string, botId: string) 
     throw error;
   }
 }
-

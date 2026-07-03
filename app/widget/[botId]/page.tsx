@@ -1,40 +1,32 @@
-import { MessageCircle, Send } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { MessageCircleOff } from "lucide-react";
+import { WidgetChatClient } from "@/app/widget/[botId]/widget-chat-client";
+import { ApiError } from "@/lib/api/errors";
+import { getPublicWidgetConfig } from "@/lib/db/widget";
 
-export default async function WidgetPreviewPage({ params }: { params: Promise<{ botId: string }> }) {
+export default async function WidgetPage({ params }: { params: Promise<{ botId: string }> }) {
   const { botId } = await params;
 
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
-      <section className="flex h-[620px] w-full max-w-sm flex-col overflow-hidden rounded-lg border bg-white shadow-xl">
-        <header className="flex items-center gap-3 bg-primary px-4 py-3 text-primary-foreground">
-          <span className="flex size-9 items-center justify-center rounded-md bg-white/15">
-            <MessageCircle className="size-5" />
+  try {
+    const widget = await getPublicWidgetConfig(botId);
+
+    return (
+      <main className="h-dvh min-h-[420px] bg-transparent">
+        <WidgetChatClient widget={widget} />
+      </main>
+    );
+  } catch (error) {
+    const message = error instanceof ApiError ? error.message : "This chatbot is temporarily unavailable.";
+
+    return (
+      <main className="grid h-dvh min-h-[420px] place-items-center bg-white p-6 text-center text-slate-800">
+        <div className="max-w-xs space-y-3">
+          <span className="mx-auto grid size-11 place-items-center rounded-md bg-slate-100 text-slate-500">
+            <MessageCircleOff className="size-5" />
           </span>
-          <div>
-            <h1 className="font-semibold">Acme Support</h1>
-            <p className="text-xs text-primary-foreground/80">Widget preview for {botId}</p>
-          </div>
-        </header>
-        <div className="flex flex-1 flex-col gap-3 overflow-y-auto bg-slate-50 p-4">
-          <div className="max-w-[84%] rounded-md border bg-white px-3 py-2 text-sm">
-            Hi. Ask me anything about Acme docs.
-          </div>
-          <div className="ml-auto max-w-[84%] rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground">
-            Where do I install the app?
-          </div>
-          <div className="max-w-[84%] rounded-md border bg-white px-3 py-2 text-sm">
-            The final answer engine arrives in Step 7. This shell is ready for the widget integration.
-          </div>
+          <h1 className="text-base font-semibold">Chat unavailable</h1>
+          <p className="text-sm leading-6 text-slate-500">{message}</p>
         </div>
-        <form className="flex gap-2 border-t bg-white p-3">
-          <Input placeholder="Type your question..." />
-          <Button type="button" size="icon" aria-label="Send widget message">
-            <Send className="size-4" />
-          </Button>
-        </form>
-      </section>
-    </main>
-  );
+      </main>
+    );
+  }
 }

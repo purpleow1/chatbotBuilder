@@ -33,7 +33,14 @@ function getBotPayload(formData: FormData) {
     description: getText(formData, "description"),
     supportTone: getText(formData, "supportTone"),
     fallbackMessage: getText(formData, "fallbackMessage"),
-    publicWidgetEnabled: formData.get("publicWidgetEnabled") === "on"
+    publicWidgetEnabled: formData.get("publicWidgetEnabled") === "on",
+    widgetSettings: {
+      primaryColor: getText(formData, "widgetPrimaryColor"),
+      launcherPosition: getText(formData, "widgetLauncherPosition"),
+      welcomeMessage: getText(formData, "widgetWelcomeMessage"),
+      botDisplayName: getText(formData, "widgetBotDisplayName"),
+      botAvatarInitials: getText(formData, "widgetBotAvatarInitials")
+    }
   };
 }
 
