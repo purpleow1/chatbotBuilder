@@ -366,7 +366,9 @@ export default async function BotDetailPage({
                       <ConfirmedSubmitButton
                         variant="outline"
                         pendingLabel="Deleting..."
+                        confirmActionLabel="Delete document"
                         confirmMessage={`Delete ${document.file_name}? This removes the source and its indexed chunks.`}
+                        confirmTitle="Delete document?"
                       >
                         <Trash2 className="size-4" />
                         Delete
@@ -395,7 +397,9 @@ export default async function BotDetailPage({
             <ConfirmedSubmitButton
               variant="destructive"
               pendingLabel="Deleting..."
+              confirmActionLabel="Delete bot"
               confirmMessage={`Delete ${bot.name}? This removes its documents, conversations, and widget configuration.`}
+              confirmTitle="Delete this bot?"
             >
               <Trash2 className="size-4" />
               Delete bot
