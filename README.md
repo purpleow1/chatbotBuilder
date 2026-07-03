@@ -2,7 +2,7 @@
 
 Embeddable chatbot builder MVP. The app lets users create support bots, upload company knowledge, test answers in an in-app chat, and publish an embeddable widget.
 
-The current repo state implements **Steps 1-6** from [IMPLEMENTATION_PLAN.md](/Users/user/repos/chatbotBuilder/IMPLEMENTATION_PLAN.md): a Next.js app shell with product routes, shared UI primitives, Tailwind styling, TanStack Query provider, Supabase schema planning, server-only Supabase data access, Supabase email/password auth with first-login workspace onboarding, API-backed bot management, source document upload management, and Gemini-powered ingestion with vector retrieval.
+The current repo state implements **Steps 1-7** from [IMPLEMENTATION_PLAN.md](/Users/user/repos/chatbotBuilder/IMPLEMENTATION_PLAN.md): a Next.js app shell with product routes, shared UI primitives, Tailwind styling, TanStack Query provider, Supabase schema planning, server-only Supabase data access, Supabase email/password auth with first-login workspace onboarding, API-backed bot management, source document upload management, Gemini-powered ingestion with vector retrieval, and a grounded RAG chat API.
 
 ## Tech Stack
 
@@ -11,7 +11,7 @@ The current repo state implements **Steps 1-6** from [IMPLEMENTATION_PLAN.md](/U
 - TanStack Query
 - Supabase Postgres with pgvector schema migration
 - Server-only Supabase service-role client for API routes and DB modules
-- Google Gemini embeddings for document retrieval
+- Google Gemini embeddings for document retrieval and grounded chat responses
 - mammoth and pdf-parse for DOCX/PDF text extraction
 - lucide-react icons
 
@@ -60,6 +60,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 GEMINI_API_KEY=
 GEMINI_EMBEDDING_MODEL=gemini-embedding-2
+GEMINI_CHAT_MODEL=gemini-2.0-flash
 ```
 
 `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` is used for Supabase Auth cookies. `NEXT_PUBLIC_SUPABASE_ANON_KEY` is supported as a legacy fallback and can later be reused for Realtime. CRUD data access should go through REST API routes backed by the service-role client, not through a browser Supabase data client.
@@ -78,6 +79,8 @@ API routes include:
 - `POST /api/bots/[botId]/documents/[documentId]/ingest`: retries ingestion for a queued or failed document.
 - `DELETE /api/bots/[botId]/documents/[documentId]`: deletes document chunks, metadata, and the stored file.
 - `GET /api/bots/[botId]/retrieval-test?query=...`: authenticated internal retrieval check that returns the top matching chunks for the active workspace.
+- `GET /api/chat?botId=...&conversationId=...`: authenticated conversation reload endpoint that returns persisted messages for a bot-scoped conversation.
+- `POST /api/chat`: authenticated RAG chat endpoint. It accepts `botId`, optional `conversationId`, and `message.parts`, retrieves bot-scoped chunks, generates a grounded Gemini answer, persists the user and assistant messages, returns citations, and records usage events.
 
 The RAG schema uses `document_chunks.embedding vector(768)`, matching the MVP choice to request 768-dimensional Google Gemini embeddings from `gemini-embedding-2`.
 
@@ -132,6 +135,45 @@ The app and bucket both enforce a 10 MB file limit. Manual checks:
 - Call `/api/bots/[botId]/retrieval-test?query=your%20phrase` while logged in and confirm it returns chunks from that bot only.
 - Delete the document and confirm it disappears from the knowledge list.
 
+## Chat API
+
+Step 7 adds `/api/chat` for authenticated in-app chat turns. The route only works for bots in the caller's active workspace, stores structured message parts as the canonical payload in `messages.parts`, writes source citations to the assistant message, and increments `message_sent` plus `assistant_response` usage events.
+
+Example request:
+
+```json
+{
+  "botId": "00000000-0000-0000-0000-000000000000",
+  "conversationId": "11111111-1111-1111-1111-111111111111",
+  "message": {
+    "parts": [
+      {
+        "type": "text",
+        "text": "What does the refund policy say?"
+      }
+    ]
+  }
+}
+```
+
+Omit `conversationId` to start a new conversation. File parts can be persisted for future UI work, but Step 7 uses text parts for retrieval and answer generation.
+
+Gemini chat configuration:
+
+- Default model: `gemini-2.0-flash`
+- Override env var: `GEMINI_CHAT_MODEL`
+- Generation settings: temperature `0.2`, top-p `0.8`, max output tokens `900`
+- Safety settings: medium-and-above blocking for harassment, hate speech, sexual content, and dangerous content
+
+Manual chat checks:
+
+- Add `GEMINI_API_KEY` to `.env.local` before testing.
+- Upload and ingest a small source document until it shows `ready`.
+- Send `POST /api/chat` with a question answerable from the document and confirm the response includes an answer and citations.
+- Send a question unrelated to uploaded knowledge and confirm the response uses the bot fallback instead of inventing an answer.
+- Reuse the returned `conversation.id` in another request and confirm messages are added to the same conversation.
+- Call `GET /api/chat?botId=...&conversationId=...` and confirm it returns the persisted user and assistant messages.
+
 ## Implemented Routes
 
 - `/login`
@@ -147,6 +189,7 @@ The app and bucket both enforce a 10 MB file limit. Manual checks:
 
 ## Notes For Next Agents
 
-- Chat completion, billing checkout, and the real widget loader are intentionally not implemented yet.
+- The Step 8 in-app chat UI should consume `/api/chat`; the current `/app/bots/[botId]/chat` page is still a static placeholder.
+- Billing checkout and the real widget loader are intentionally not implemented yet.
 - Keep client components and Server Components away from Supabase/DB modules. Fetch app data through API routes.
 - The dashboard uses live bot capacity, while document and message statistics remain demo data until later steps.

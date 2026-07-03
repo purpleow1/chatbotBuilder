@@ -315,6 +315,8 @@ Integration handoff to provide when complete:
 
 Dependency: Step 6
 
+Status: implemented in repo.
+
 Goal: bots answer questions using uploaded knowledge.
 
 Implementation tasks:
@@ -338,9 +340,35 @@ What you can check:
 
 Integration handoff to provide when complete:
 
-- Google Gemini chat model name and any safety/model configuration.
-- Required env vars or provider console setup.
-- Manual chat verification steps, including structured message parts and citations.
+- Implemented in repo:
+  - Added `POST /api/chat` for authenticated RAG chat turns.
+  - Added `GET /api/chat?botId=...&conversationId=...` for authenticated conversation reloads.
+  - Accepts `botId`, optional `conversationId`, and structured `message.parts`.
+  - Validates workspace-scoped bot/conversation access before persisting messages.
+  - Retrieves top bot-scoped chunks through the Step 6 vector search helper.
+  - Builds a grounded prompt from bot settings and retrieved context.
+  - Persists user and assistant messages with structured parts, text, metadata, and citations.
+  - Records `message_sent` and `assistant_response` usage events.
+  - Falls back to the bot fallback message when retrieved context is not relevant enough.
+- Gemini chat model and configuration:
+  - Default model: `gemini-2.0-flash`.
+  - Override env var: `GEMINI_CHAT_MODEL`.
+  - Generation settings: temperature `0.2`, top-p `0.8`, max output tokens `900`.
+  - Safety settings block medium-and-above harassment, hate speech, sexually explicit, and dangerous content.
+- Required before manual chat testing:
+  - Add `GEMINI_API_KEY` to `.env.local`.
+  - Optional override: set `GEMINI_CHAT_MODEL` in `.env.local`.
+  - Upload and ingest at least one ready source document for the target bot.
+- Manual chat verification steps:
+  - Send `POST /api/chat` with JSON like `{ "botId": "...", "message": { "parts": [{ "type": "text", "text": "What does the policy say?" }] } }`.
+  - Confirm the response includes `answer.text`, `answer.parts`, and `answer.citations`.
+  - Reuse the returned `conversation.id` as `conversationId` and confirm the route appends to the same conversation.
+  - Call `GET /api/chat?botId=...&conversationId=...` and confirm the persisted messages are returned.
+  - Ask about unknown content and confirm the assistant uses the fallback rather than inventing an answer.
+- Verification completed:
+  - `npm run typecheck`
+  - `npm run lint`
+  - `npm run build`
 
 ## Step 8: In-App Chat Experience
 

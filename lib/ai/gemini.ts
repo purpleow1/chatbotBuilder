@@ -3,6 +3,7 @@ import { ApiError } from "@/lib/api/errors";
 
 export const GEMINI_EMBEDDING_MODEL = process.env.GEMINI_EMBEDDING_MODEL || "gemini-embedding-2";
 export const GEMINI_EMBEDDING_DIMENSIONS = 768;
+export const GEMINI_CHAT_MODEL = process.env.GEMINI_CHAT_MODEL || "gemini-2.0-flash";
 
 type GeminiEmbeddingResponse = {
   embedding?: {
@@ -15,6 +16,34 @@ type GeminiEmbeddingResponse = {
     message?: string;
     status?: string;
   };
+};
+
+type GeminiGenerateContentResponse = {
+  candidates?: Array<{
+    content?: {
+      parts?: Array<{
+        text?: string;
+      }>;
+    };
+    finishReason?: string;
+  }>;
+  usageMetadata?: {
+    promptTokenCount?: number;
+    candidatesTokenCount?: number;
+    totalTokenCount?: number;
+  };
+  error?: {
+    message?: string;
+    status?: string;
+  };
+};
+
+export type GeminiChatResult = {
+  text: string;
+  inputTokens: number | null;
+  outputTokens: number | null;
+  model: string;
+  finishReason: string | null;
 };
 
 function getGeminiApiKey() {
@@ -114,4 +143,68 @@ export async function generateGeminiEmbedding(text: string, usage: "document" | 
   }
 
   throw lastError;
+}
+
+export async function generateGeminiChatResponse(prompt: string): Promise<GeminiChatResult> {
+  const apiKey = getGeminiApiKey();
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent`;
+  const body = {
+    contents: [
+      {
+        role: "user",
+        parts: [{ text: prompt }]
+      }
+    ],
+    generationConfig: {
+      temperature: 0.2,
+      topP: 0.8,
+      maxOutputTokens: 900
+    },
+    safetySettings: [
+      { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+      { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+      { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+      { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" }
+    ]
+  };
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-goog-api-key": apiKey
+      },
+      body: JSON.stringify(body)
+    });
+    const payload = (await response.json()) as GeminiGenerateContentResponse;
+
+    if (!response.ok) {
+      const message = payload.error?.message ?? `Gemini chat request failed with status ${response.status}.`;
+
+      if ((response.status === 429 || response.status >= 500) && attempt < 2) {
+        await sleep(400 * 2 ** attempt);
+        continue;
+      }
+
+      throw new ApiError(response.status >= 500 ? 502 : response.status, message, "gemini_chat_failed");
+    }
+
+    const candidate = payload.candidates?.[0];
+    const text = candidate?.content?.parts?.map((part) => part.text ?? "").join("").trim() ?? "";
+
+    if (!text) {
+      throw new ApiError(502, "Gemini returned an empty chat response.", "empty_chat_response");
+    }
+
+    return {
+      text,
+      inputTokens: payload.usageMetadata?.promptTokenCount ?? null,
+      outputTokens: payload.usageMetadata?.candidatesTokenCount ?? null,
+      model: GEMINI_CHAT_MODEL,
+      finishReason: candidate?.finishReason ?? null
+    };
+  }
+
+  throw new ApiError(502, "Gemini chat request failed after retries.", "gemini_chat_failed");
 }
