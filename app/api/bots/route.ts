@@ -5,6 +5,7 @@ import { botMutationSchema } from "@/lib/api/bot-validation";
 import { applyAuthCookies, authenticateRequest } from "@/lib/db/auth";
 import { createBotForWorkspace, getBotCapacity, listBotsForWorkspace } from "@/lib/db/bots";
 import { ensureAccountForUser } from "@/lib/db/onboarding";
+import { applyWidgetPlanLimits, normalizeWidgetSettings } from "@/lib/widget/settings";
 
 export const runtime = "nodejs";
 
@@ -38,7 +39,14 @@ export async function POST(request: NextRequest) {
       throw validationError(input.error);
     }
 
-    const bot = await createBotForWorkspace(account.activeWorkspace.id, user.id, input.data);
+    const botInput = {
+      ...input.data,
+      widgetSettings:
+        input.data.widgetSettings === undefined
+          ? undefined
+          : applyWidgetPlanLimits(normalizeWidgetSettings(input.data.widgetSettings, input.data.name), account.subscription.plan)
+    };
+    const bot = await createBotForWorkspace(account.activeWorkspace.id, user.id, botInput);
     const response = NextResponse.json({ bot }, { status: 201 });
 
     return applyAuthCookies(response, cookiesToSet);
@@ -46,4 +54,3 @@ export async function POST(request: NextRequest) {
     return apiErrorResponse(error);
   }
 }
-

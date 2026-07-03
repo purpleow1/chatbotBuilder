@@ -1,4 +1,6 @@
 import { z } from "zod";
+import type { SubscriptionPlan } from "@/lib/db/database.types";
+import { planAllowsCustomTheme } from "@/lib/plans";
 
 export const widgetPositionSchema = z.enum(["bottom-right", "bottom-left"]);
 
@@ -39,6 +41,18 @@ export function normalizeWidgetSettings(value: unknown, botName?: string | null)
     ...fallback,
     ...parsed.data
   });
+}
+
+export function applyWidgetPlanLimits(settings: WidgetSettings, plan: SubscriptionPlan): WidgetSettings {
+  if (planAllowsCustomTheme(plan)) {
+    return settings;
+  }
+
+  return {
+    ...settings,
+    primaryColor: defaultWidgetSettings.primaryColor,
+    launcherPosition: defaultWidgetSettings.launcherPosition
+  };
 }
 
 export function getInitials(value?: string | null) {

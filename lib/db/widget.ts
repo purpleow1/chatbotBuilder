@@ -3,9 +3,9 @@ import { ApiError } from "@/lib/api/errors";
 import { createChatTurn, type ChatCitation, type ChatConversation, type ChatMessage } from "@/lib/db/chat";
 import type { BotRecord } from "@/lib/db/bots";
 import type { SubscriptionPlan, SubscriptionStatus } from "@/lib/db/database.types";
-import { planAllowsCustomTheme, planRemovesBranding } from "@/lib/plans";
+import { planRemovesBranding } from "@/lib/plans";
 import { getSupabaseServiceClient } from "@/lib/supabase/service";
-import { defaultWidgetSettings, normalizeWidgetSettings, type WidgetSettings } from "@/lib/widget/settings";
+import { applyWidgetPlanLimits, normalizeWidgetSettings, type WidgetSettings } from "@/lib/widget/settings";
 
 const botColumns =
   "id, workspace_id, created_by, name, description, purpose, support_tone, fallback_message, public_widget_enabled, status, widget_settings, created_at, updated_at";
@@ -102,12 +102,7 @@ export async function getPublicWidgetAvailability(botId: string): Promise<Widget
 
   const plan = await ensurePlanAllowsWidget(bot);
   const rawSettings = normalizeWidgetSettings(bot.widget_settings, bot.name);
-  const settings = planAllowsCustomTheme(plan)
-    ? rawSettings
-    : {
-        ...rawSettings,
-        primaryColor: defaultWidgetSettings.primaryColor
-      };
+  const settings = applyWidgetPlanLimits(rawSettings, plan);
 
   return {
     bot,

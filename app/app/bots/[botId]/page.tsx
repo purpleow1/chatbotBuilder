@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, CreditCard, FileText, MessageSquare, Palette, Save, Settings, Trash2, Upload } from "lucide-react";
 import { deleteBot, deleteDocument, retryDocumentIngestion, updateBot } from "@/app/app/bots/actions";
+import { CopyWidgetScriptButton } from "@/app/app/bots/[botId]/copy-widget-script-button";
 import { DocumentUploadForm } from "@/app/app/bots/[botId]/document-upload-form";
 import { ConfirmedSubmitButton } from "@/components/confirmed-submit-button";
 import { SubmitButton } from "@/components/submit-button";
@@ -13,11 +14,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatFileSize, MAX_SOURCE_DOCUMENT_BYTES, SUPPORTED_SOURCE_EXTENSIONS } from "@/lib/api/document-validation";
 import { fetchInternalApi } from "@/lib/api/server-fetch";
 import type { BotRecord } from "@/lib/db/bots";
+import type { AccountSubscription } from "@/lib/db/onboarding";
 import type { DocumentCapacity, SourceDocumentRecord } from "@/lib/db/documents";
-import { normalizeWidgetSettings } from "@/lib/widget/settings";
+import { applyWidgetPlanLimits, normalizeWidgetSettings } from "@/lib/widget/settings";
+import { planAllowsCustomTheme } from "@/lib/plans";
 
 type BotApiResponse = {
   bot: BotRecord;
+  subscription: AccountSubscription;
 };
 
 type DocumentsApiResponse = {
@@ -118,7 +122,8 @@ export default async function BotDetailPage({
   const documentCapacity = documentsResult.ok ? documentsResult.data.capacity : null;
   const documentsError = documentsResult.ok ? null : documentsResult.error.message;
   const notice = getNotice(query);
-  const widgetSettings = normalizeWidgetSettings(bot.widget_settings, bot.name);
+  const canCustomizeWidgetTheme = planAllowsCustomTheme(result.data.subscription.plan);
+  const widgetSettings = applyWidgetPlanLimits(normalizeWidgetSettings(bot.widget_settings, bot.name), result.data.subscription.plan);
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? process.env.APP_URL ?? "http://localhost:3000";
   const embedSnippet = `<script src="${appUrl}/embed.js" data-bot-id="${bot.id}"></script>`;
   const acceptedExtensions = SUPPORTED_SOURCE_EXTENSIONS.join(",");
@@ -147,18 +152,18 @@ export default async function BotDetailPage({
 
       {notice ? <div className="rounded-md border bg-card px-4 py-3 text-sm text-muted-foreground">{notice}</div> : null}
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="size-5" />
-              Profile
-            </CardTitle>
-            <CardDescription>These settings feed prompts and widget presentation.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form action={updateBot} className="space-y-4">
-              <input type="hidden" name="botId" value={bot.id} />
+      <form action={updateBot} className="space-y-4">
+        <input type="hidden" name="botId" value={bot.id} />
+        <div className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="size-5" />
+                Profile
+              </CardTitle>
+              <CardDescription>These settings feed prompts and test chat behavior.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Bot name</Label>
                 <Input id="name" name="name" defaultValue={bot.name} required minLength={2} maxLength={80} />
@@ -193,6 +198,18 @@ export default async function BotDetailPage({
                   maxLength={240}
                 />
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="size-5" />
+                Widget
+              </CardTitle>
+              <CardDescription>Publish, style, preview, and embed this bot.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <label className="flex flex-col gap-3 rounded-md border bg-muted/45 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <span>
                   <span className="block font-medium">Public widget</span>
@@ -235,8 +252,14 @@ export default async function BotDetailPage({
                       defaultValue={widgetSettings.primaryColor}
                       className="h-10 w-14 p-1"
                       aria-label="Widget primary color"
+                      disabled={!canCustomizeWidgetTheme}
                     />
-                    <Input defaultValue={widgetSettings.primaryColor} readOnly aria-label="Selected widget primary color" />
+                    <Input
+                      name={!canCustomizeWidgetTheme ? "widgetPrimaryColor" : undefined}
+                      defaultValue={widgetSettings.primaryColor}
+                      readOnly
+                      aria-label="Selected widget primary color"
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -245,11 +268,15 @@ export default async function BotDetailPage({
                     id="widgetLauncherPosition"
                     name="widgetLauncherPosition"
                     defaultValue={widgetSettings.launcherPosition}
+                    disabled={!canCustomizeWidgetTheme}
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     <option value="bottom-right">Bottom right</option>
                     <option value="bottom-left">Bottom left</option>
                   </select>
+                  {!canCustomizeWidgetTheme ? (
+                    <input type="hidden" name="widgetLauncherPosition" value={widgetSettings.launcherPosition} />
+                  ) : null}
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="widgetWelcomeMessage">Welcome message</Label>
@@ -261,40 +288,30 @@ export default async function BotDetailPage({
                   />
                 </div>
               </div>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <SubmitButton pendingLabel="Saving...">
-                  <Save className="size-4" />
-                  Save changes
-                </SubmitButton>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Palette className="size-5" />
-              Widget
-            </CardTitle>
-            <CardDescription>Copy this script into a plain HTML page or app template.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="rounded-md border bg-muted p-3">
-              <code className="break-all text-sm">{embedSnippet}</code>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" asChild>
-                <Link href={`/widget/${bot.id}`}>Preview widget</Link>
-              </Button>
-            </div>
-            <div className="rounded-md border bg-muted/35 p-3 text-sm text-muted-foreground">
-              The loader fetches public widget config with CORS enabled, paints the launcher, and opens this bot in an
-              iframe. Set <code className="text-foreground">NEXT_PUBLIC_APP_URL</code> or <code className="text-foreground">APP_URL</code> before deploying.
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+              {!canCustomizeWidgetTheme ? (
+                <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
+                  Your {result.data.subscription.plan} plan uses the default widget color and launcher position. Upgrade to customize the theme.
+                </div>
+              ) : null}
+
+              <div className="rounded-md border bg-muted p-3">
+                <code className="break-all text-sm">{embedSnippet}</code>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <CopyWidgetScriptButton script={embedSnippet} />
+                <Button variant="outline" asChild>
+                  <Link href={`/widget/${bot.id}`}>Preview widget</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        <SubmitButton pendingLabel="Saving...">
+          <Save className="size-4" />
+          Save changes
+        </SubmitButton>
+      </form>
 
       <Card>
         <CardHeader>

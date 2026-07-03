@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Fragment } from "react";
-import { ArrowLeft, ArrowRight, Bot, CreditCard } from "lucide-react";
+import { ArrowLeft, ArrowRight, Bot, CreditCard, Palette } from "lucide-react";
 import { createBot } from "@/app/app/bots/actions";
 import { SubmitButton } from "@/components/submit-button";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { fetchInternalApi } from "@/lib/api/server-fetch";
 import type { BotCapacity, BotListItem } from "@/lib/db/bots";
+import { planAllowsCustomTheme } from "@/lib/plans";
+import { defaultWidgetSettings } from "@/lib/widget/settings";
 
 type BotsApiResponse = {
   bots: BotListItem[];
@@ -34,6 +36,7 @@ export default async function NewBotPage({
 
   const { capacity } = result.data;
   const error = typeof params.error === "string" ? params.error : null;
+  const canCustomizeWidgetTheme = planAllowsCustomTheme(capacity.plan);
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -72,14 +75,14 @@ export default async function NewBotPage({
           </CardContent>
         </Card>
       ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>Bot profile</CardTitle>
-            <CardDescription>These settings shape the in-app chat and public widget behavior.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {error ? <div className="mb-5 rounded-md border bg-card px-4 py-3 text-sm text-destructive">{error}</div> : null}
-            <form action={createBot} className="space-y-5">
+        <form action={createBot} className="space-y-5">
+          {error ? <div className="rounded-md border bg-card px-4 py-3 text-sm text-destructive">{error}</div> : null}
+          <Card>
+            <CardHeader>
+              <CardTitle>Bot profile</CardTitle>
+              <CardDescription>These settings shape the in-app chat behavior.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="name">Bot name</Label>
                 <Input id="name" name="name" placeholder="Acme Support" required minLength={2} maxLength={80} />
@@ -106,6 +109,18 @@ export default async function NewBotPage({
                   maxLength={240}
                 />
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="size-5" />
+                Widget
+              </CardTitle>
+              <CardDescription>Set the public widget defaults for this bot.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
               <label className="flex flex-col gap-3 rounded-md border bg-muted/45 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <span>
                   <span className="block font-medium">Public widget</span>
@@ -113,13 +128,86 @@ export default async function NewBotPage({
                 </span>
                 <input name="publicWidgetEnabled" type="checkbox" className="size-5 accent-primary" defaultChecked />
               </label>
-              <SubmitButton pendingLabel="Creating...">
-                <Bot className="size-4" />
-                Create bot
-              </SubmitButton>
-            </form>
-          </CardContent>
-        </Card>
+
+              <div className="grid gap-4 rounded-md border bg-muted/35 p-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="widgetBotDisplayName">Widget bot name</Label>
+                  <Input
+                    id="widgetBotDisplayName"
+                    name="widgetBotDisplayName"
+                    defaultValue={defaultWidgetSettings.botDisplayName}
+                    maxLength={80}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="widgetBotAvatarInitials">Avatar initials</Label>
+                  <Input
+                    id="widgetBotAvatarInitials"
+                    name="widgetBotAvatarInitials"
+                    defaultValue={defaultWidgetSettings.botAvatarInitials}
+                    maxLength={3}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="widgetPrimaryColor">Primary color</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="widgetPrimaryColor"
+                      name="widgetPrimaryColor"
+                      type="color"
+                      defaultValue={defaultWidgetSettings.primaryColor}
+                      className="h-10 w-14 p-1"
+                      aria-label="Widget primary color"
+                      disabled={!canCustomizeWidgetTheme}
+                    />
+                    <Input
+                      name={!canCustomizeWidgetTheme ? "widgetPrimaryColor" : undefined}
+                      defaultValue={defaultWidgetSettings.primaryColor}
+                      readOnly
+                      aria-label="Selected widget primary color"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="widgetLauncherPosition">Launcher position</Label>
+                  <select
+                    id="widgetLauncherPosition"
+                    name="widgetLauncherPosition"
+                    defaultValue={defaultWidgetSettings.launcherPosition}
+                    disabled={!canCustomizeWidgetTheme}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    <option value="bottom-right">Bottom right</option>
+                    <option value="bottom-left">Bottom left</option>
+                  </select>
+                  {!canCustomizeWidgetTheme ? (
+                    <input type="hidden" name="widgetLauncherPosition" value={defaultWidgetSettings.launcherPosition} />
+                  ) : null}
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="widgetWelcomeMessage">Welcome message</Label>
+                  <Textarea
+                    id="widgetWelcomeMessage"
+                    name="widgetWelcomeMessage"
+                    defaultValue={defaultWidgetSettings.welcomeMessage}
+                    maxLength={180}
+                  />
+                </div>
+              </div>
+
+              {!canCustomizeWidgetTheme ? (
+                <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
+                  Your {capacity.plan} plan uses the default widget color and launcher position. Upgrade to customize the theme.
+                </div>
+              ) : null}
+            </CardContent>
+          </Card>
+
+          <SubmitButton pendingLabel="Creating...">
+            <Bot className="size-4" />
+            Create bot
+          </SubmitButton>
+        </form>
       )}
 
       <ol className="grid gap-3 sm:grid-cols-[1fr_auto_1fr_auto_1fr] sm:items-center">

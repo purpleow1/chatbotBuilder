@@ -5,6 +5,7 @@ import { botUpdateSchema } from "@/lib/api/bot-validation";
 import { applyAuthCookies, authenticateRequest } from "@/lib/db/auth";
 import { deleteBotForWorkspace, getBotForWorkspace, updateBotForWorkspace } from "@/lib/db/bots";
 import { ensureAccountForUser } from "@/lib/db/onboarding";
+import { applyWidgetPlanLimits, normalizeWidgetSettings } from "@/lib/widget/settings";
 
 export const runtime = "nodejs";
 
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const { user, cookiesToSet } = await authenticateRequest(request);
     const account = await ensureAccountForUser(user);
     const bot = await getBotForWorkspace(account.activeWorkspace.id, botId);
-    const response = NextResponse.json({ bot });
+    const response = NextResponse.json({ bot, subscription: account.subscription });
 
     return applyAuthCookies(response, cookiesToSet);
   } catch (error) {
@@ -37,7 +38,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       throw validationError(input.error);
     }
 
-    const bot = await updateBotForWorkspace(account.activeWorkspace.id, botId, input.data);
+    const botInput = {
+      ...input.data,
+      widgetSettings:
+        input.data.widgetSettings === undefined
+          ? undefined
+          : applyWidgetPlanLimits(normalizeWidgetSettings(input.data.widgetSettings, input.data.name), account.subscription.plan)
+    };
+    const bot = await updateBotForWorkspace(account.activeWorkspace.id, botId, botInput);
     const response = NextResponse.json({ bot });
 
     return applyAuthCookies(response, cookiesToSet);
@@ -61,4 +69,3 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     return apiErrorResponse(error);
   }
 }
-
