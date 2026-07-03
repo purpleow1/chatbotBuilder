@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { CreditCard, FileText, MessageSquare, Palette, Save, Settings, Trash2, Upload } from "lucide-react";
-import { deleteBot, deleteDocument, retryDocumentIngestion, updateBot, uploadDocument } from "@/app/app/bots/actions";
+import { ArrowLeft, CreditCard, FileText, MessageSquare, Palette, Save, Settings, Trash2, Upload } from "lucide-react";
+import { deleteBot, deleteDocument, retryDocumentIngestion, updateBot } from "@/app/app/bots/actions";
+import { DocumentUploadForm } from "@/app/app/bots/[botId]/document-upload-form";
+import { ConfirmedSubmitButton } from "@/components/confirmed-submit-button";
 import { SubmitButton } from "@/components/submit-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -125,6 +127,12 @@ export default async function BotDetailPage({
     <div className="space-y-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
+          <Button variant="ghost" size="sm" asChild className="-ml-3 mb-2">
+            <Link href="/app/bots">
+              <ArrowLeft className="size-4" />
+              Bots
+            </Link>
+          </Button>
           <p className="text-sm font-medium text-primary">Bot settings</p>
           <h1 className="text-3xl font-semibold tracking-tight">{bot.name}</h1>
           <p className="mt-2 text-muted-foreground">Configure the bot profile, testing route, and widget availability.</p>
@@ -320,19 +328,7 @@ export default async function BotDetailPage({
               </div>
             </div>
           ) : (
-            <form action={uploadDocument} className="grid gap-3 rounded-md border bg-muted/35 p-4 md:grid-cols-[1fr_auto]">
-              <input type="hidden" name="botId" value={bot.id} />
-              <div className="space-y-2">
-                <Label htmlFor="source-file">Source file</Label>
-                <Input id="source-file" name="file" type="file" accept={acceptedExtensions} required />
-              </div>
-              <div className="flex items-end">
-                <SubmitButton pendingLabel="Uploading...">
-                  <Upload className="size-4" />
-                  Upload
-                </SubmitButton>
-              </div>
-            </form>
+            <DocumentUploadForm acceptedExtensions={acceptedExtensions} botId={bot.id} />
           )}
 
           {documents.length > 0 ? (
@@ -367,10 +363,14 @@ export default async function BotDetailPage({
                     <form action={deleteDocument}>
                       <input type="hidden" name="botId" value={bot.id} />
                       <input type="hidden" name="documentId" value={document.id} />
-                      <SubmitButton variant="outline" pendingLabel="Deleting...">
+                      <ConfirmedSubmitButton
+                        variant="outline"
+                        pendingLabel="Deleting..."
+                        confirmMessage={`Delete ${document.file_name}? This removes the source and its indexed chunks.`}
+                      >
                         <Trash2 className="size-4" />
                         Delete
-                      </SubmitButton>
+                      </ConfirmedSubmitButton>
                     </form>
                   </div>
                 </div>
@@ -392,10 +392,14 @@ export default async function BotDetailPage({
         <CardContent>
           <form action={deleteBot}>
             <input type="hidden" name="botId" value={bot.id} />
-            <SubmitButton variant="destructive" pendingLabel="Deleting...">
+            <ConfirmedSubmitButton
+              variant="destructive"
+              pendingLabel="Deleting..."
+              confirmMessage={`Delete ${bot.name}? This removes its documents, conversations, and widget configuration.`}
+            >
               <Trash2 className="size-4" />
               Delete bot
-            </SubmitButton>
+            </ConfirmedSubmitButton>
           </form>
         </CardContent>
       </Card>

@@ -7,9 +7,7 @@ import {
   Building2,
   CreditCard,
   Home,
-  LifeBuoy,
-  LogOut,
-  Settings
+  LogOut
 } from "lucide-react";
 import { logout } from "@/app/app/actions";
 import { Button } from "@/components/ui/button";
@@ -110,20 +108,7 @@ export function AppShell({ children, account }: { children: React.ReactNode; acc
             </span>
             <span className="font-semibold">HelpDock AI</span>
           </Link>
-          <nav className="hidden items-center gap-1 lg:flex">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/app/bots">
-                <LifeBuoy className="size-4" />
-                Bots
-              </Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/app/bots">
-                <Settings className="size-4" />
-                Settings
-              </Link>
-            </Button>
-          </nav>
+          <div className="hidden lg:block" />
           <div className="flex items-center gap-3">
             <label className="hidden min-w-0 items-center gap-2 rounded-md border bg-card px-3 py-2 sm:flex">
               <Building2 className="size-4 shrink-0 text-muted-foreground" />

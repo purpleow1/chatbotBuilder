@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Bot, CheckCircle2, CreditCard } from "lucide-react";
+import { ArrowLeft, Bot, CheckCircle2, CreditCard } from "lucide-react";
 import { createBot } from "@/app/app/bots/actions";
 import { SubmitButton } from "@/components/submit-button";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,12 @@ export default async function NewBotPage({
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
+        <Button variant="ghost" size="sm" asChild className="-ml-3 mb-2">
+          <Link href="/app/bots">
+            <ArrowLeft className="size-4" />
+            Bots
+          </Link>
+        </Button>
         <p className="text-sm font-medium text-primary">New bot</p>
         <h1 className="text-3xl font-semibold tracking-tight">Create a support assistant</h1>
         <p className="mt-2 text-muted-foreground">
@@ -126,4 +132,3 @@ export default async function NewBotPage({
     </div>
   );
 }
-

@@ -48,6 +48,8 @@ Billing can use Stripe test checkout when env vars exist and a mock upgrade path
 
 Each step below should be executable by a separate agent. Follow the durable agent workflow, environment-variable, verification, and handoff rules in [.cursor/rules/project.mdc](.cursor/rules/project.mdc).
 
+Dev server ownership: agents may start `npm run dev` temporarily when needed for their own verification, but must stop it before handoff. Do not start, restart, leave running, or ask for approval to start the dev server at the end of the task; the project owner runs the handoff dev server manually. If final browser/manual verification still needs the user's manually running server, note that briefly in the handoff.
+
 ### How To Read Integration Handoffs
 
 When an agent says a handoff action is needed, it means the code for that feature was added to the repo, but some external service may still need configuration before the feature works against a real account. The required handoff labels and migration guidance are defined in [.cursor/rules/project.mdc](.cursor/rules/project.mdc).

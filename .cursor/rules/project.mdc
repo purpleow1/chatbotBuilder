@@ -22,7 +22,9 @@ alwaysApply: true
 - Add or update tests for touched behavior when practical.
 - Update `README.md` and env docs when setup or usage changes.
 - Run the relevant verification command before handing off.
-- If a dev server is useful for verification, start it only as needed and stop it before handing off. The project owner prefers to run long-lived dev servers manually.
+- If a dev server is needed for agent verification, start it only for that verification and stop it before handing off.
+- Do not start, restart, leave running, or ask for approval to start the dev server at the end of the task. The project owner runs the handoff dev server manually.
+- If final browser/manual verification still needs the user's manually running server, say so briefly in the handoff instead of asking to start it.
 
 ## Environment Variables
 

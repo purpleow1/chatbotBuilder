@@ -27,6 +27,19 @@ function getText(formData: FormData, key: string) {
   return typeof value === "string" ? value : "";
 }
 
+function getWidgetSettingsPayload(formData: FormData) {
+  const widgetSettings = {
+    primaryColor: getText(formData, "widgetPrimaryColor"),
+    launcherPosition: getText(formData, "widgetLauncherPosition"),
+    welcomeMessage: getText(formData, "widgetWelcomeMessage"),
+    botDisplayName: getText(formData, "widgetBotDisplayName"),
+    botAvatarInitials: getText(formData, "widgetBotAvatarInitials")
+  };
+  const hasWidgetSettings = Object.values(widgetSettings).some((value) => value.length > 0);
+
+  return hasWidgetSettings ? widgetSettings : undefined;
+}
+
 function getBotPayload(formData: FormData) {
   return {
     name: getText(formData, "name"),
@@ -34,13 +47,7 @@ function getBotPayload(formData: FormData) {
     supportTone: getText(formData, "supportTone"),
     fallbackMessage: getText(formData, "fallbackMessage"),
     publicWidgetEnabled: formData.get("publicWidgetEnabled") === "on",
-    widgetSettings: {
-      primaryColor: getText(formData, "widgetPrimaryColor"),
-      launcherPosition: getText(formData, "widgetLauncherPosition"),
-      welcomeMessage: getText(formData, "widgetWelcomeMessage"),
-      botDisplayName: getText(formData, "widgetBotDisplayName"),
-      botAvatarInitials: getText(formData, "widgetBotAvatarInitials")
-    }
+    widgetSettings: getWidgetSettingsPayload(formData)
   };
 }
 
