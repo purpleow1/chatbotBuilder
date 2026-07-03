@@ -2,7 +2,7 @@
 
 import { FormEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import { FileText, Loader2, MessageCircle, Send, TriangleAlert } from "lucide-react";
+import { Loader2, MessageCircle, Send, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -264,19 +264,6 @@ export function WidgetChatClient({ widget, className }: WidgetChatClientProps) {
                 </div>
               ) : null}
               <p className="whitespace-pre-wrap">{message.content}</p>
-              {message.citations.length > 0 ? (
-                <div className="mt-2 space-y-1 border-t border-slate-200 pt-2">
-                  {message.citations.map((citation) => (
-                    <div key={citation.chunkId} className="flex items-center gap-1.5 text-xs text-slate-500">
-                      <FileText className="size-3 shrink-0" />
-                      <span className="truncate">
-                        {citation.sourceName}
-                        {citation.pageNumber ? `, page ${citation.pageNumber}` : ""} - chunk {citation.chunkIndex + 1}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
             </div>
           </article>
         ))}
