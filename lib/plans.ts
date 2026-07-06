@@ -26,7 +26,7 @@ export const PLAN_CONFIGS: Record<SubscriptionPlan, PlanConfig> = {
     removesBranding: false,
     customTheme: false,
     stripePriceIdEnvVar: "",
-    features: ["1 bot", "5 documents", "100 monthly messages", "HelpDock branding on widget"]
+    features: ["1 bot", "5 documents", "100 monthly messages", "AskDoc branding on widget"]
   },
   pro: {
     plan: "pro",

@@ -9,7 +9,6 @@ import {
   MainHeroActions,
   MainLandingHeader,
   MainPricingSection,
-  MainProofStrip,
   MainWorkflowBand,
   PRODUCT_NAME,
   SIGNUP_HREF
@@ -40,15 +39,15 @@ export default function HomePage() {
           <h1 className="mt-4 max-w-4xl text-5xl font-semibold leading-tight tracking-tight text-slate-950">
             {PRODUCT_NAME} turns company docs into a support chatbot customers can trust.
           </h1>
-          <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-700">
-            Upload policies, FAQs, docs, and CSVs. Test grounded answers in the app, then publish the same assistant as a
-            branded website widget.
-          </p>
-          <div className="mt-8">
+          <div className="mt-5 flex max-w-4xl flex-col gap-5 md:flex-row md:items-start md:justify-between">
+            <p className="max-w-2xl text-lg leading-8 text-slate-700">
+              Upload policies, FAQs, docs, and CSVs. Test grounded answers in the app, then publish the same assistant as a
+              branded website widget.
+            </p>
             <MainHeroActions />
           </div>
           <div className="mt-8 flex flex-wrap gap-3 text-sm text-slate-700">
-            {["Free plan included", "PDF, DOCX, MD, TXT, CSV", "Source-aware testing"].map((item) => (
+            {["Free plan included", "PDF, DOCX, MD, TXT, CSV", "Source-aware testing", "1 script tag to embed"].map((item) => (
               <span key={item} className="inline-flex items-center gap-2 rounded-full border bg-white/80 px-3 py-1.5">
                 <Check className="size-4 text-primary" />
                 {item}
@@ -58,7 +57,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <MainProofStrip />
+      {/* <MainProofStrip /> */}
 
       <section id="product" className="bg-white">
         <div className="mx-auto grid max-w-6xl gap-10 px-6 py-16 md:grid-cols-[0.85fr_1.15fr] md:items-center">

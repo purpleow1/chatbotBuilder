@@ -148,7 +148,7 @@ function buildGroundedPrompt(bot: BotRecord, userText: string, matches: Knowledg
     ? "When you rely on a source, mention the source name naturally."
     : "Do not mention source file names or phrases like \"according to the file\". Answer directly using the knowledge context.";
 
-  return `You are ${bot.name}, a support assistant for this HelpDock AI bot.
+  return `You are ${bot.name}, a support assistant for this AskDoc bot.
 
 Purpose: ${purpose}
 Tone: ${tone}

@@ -57,7 +57,7 @@ type WidgetChatClientProps = {
 };
 
 function getVisitorId(botId: string) {
-  const key = `helpdock:${botId}:visitor`;
+  const key = `askdoc:${botId}:visitor`;
   const existing = window.localStorage.getItem(key);
 
   if (existing) {
@@ -71,7 +71,7 @@ function getVisitorId(botId: string) {
 }
 
 function getConversationStorageKey(botId: string, visitorId: string) {
-  return `helpdock:${botId}:${visitorId}:conversation`;
+  return `askdoc:${botId}:${visitorId}:conversation`;
 }
 
 function createWelcomeMessage(message: string): ChatMessage {
@@ -417,7 +417,7 @@ export function WidgetChatClient({ widget, className }: WidgetChatClientProps) {
       {widget.showBranding && (
         <div className="border-t border-slate-100 bg-white px-4 py-2 text-center text-xs text-slate-400">
           Powered by{" "}
-          <span className="font-medium text-slate-500">HelpDock AI</span>
+          <span className="font-medium text-slate-500">AskDoc</span>
         </div>
       )}
     </section>

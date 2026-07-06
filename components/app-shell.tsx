@@ -1,9 +1,9 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Route } from "next";
 import {
   BarChart3,
   Bot,
-  BotMessageSquare,
   Building2,
   CreditCard,
   Home,
@@ -20,6 +20,9 @@ const navItems = [
   { href: "/app/bots" as Route, label: "Bots", icon: Bot },
   { href: "/app/billing" as Route, label: "Billing", icon: CreditCard }
 ];
+
+const LOGO_SRC = "/logos/askdoc-logo.svg";
+const PRODUCT_NAME = "AskDoc";
 
 export type AppShellAccount = {
   user: {
@@ -64,13 +67,7 @@ export function AppShell({ children, account }: { children: React.ReactNode; acc
     <div className="min-h-screen bg-background">
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 border-r bg-card lg:flex lg:flex-col">
         <div className="flex h-16 items-center gap-2 border-b px-5">
-          <span className="flex size-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <BotMessageSquare className="size-5" />
-          </span>
-          <div>
-            <p className="font-semibold leading-tight">HelpDock AI</p>
-            <p className="text-xs text-muted-foreground">Chatbot builder</p>
-          </div>
+          <Image src={LOGO_SRC} alt={`${PRODUCT_NAME} logo`} width={132} height={38} priority className="h-10 w-auto" />
         </div>
         <nav className="flex-1 space-y-1 p-3">
           {navItems.map((item) => (
@@ -106,10 +103,7 @@ export function AppShell({ children, account }: { children: React.ReactNode; acc
           <div className="flex items-center gap-2">
             <MobileNav planName={planName} planSummary={planSummary} />
             <Link href="/app" className="flex items-center gap-2 lg:hidden">
-              <span className="flex size-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                <BotMessageSquare className="size-5" />
-              </span>
-              <span className="font-semibold">HelpDock AI</span>
+              <Image src={LOGO_SRC} alt={`${PRODUCT_NAME} logo`} width={120} height={34} priority className="h-9 w-auto" />
             </Link>
           </div>
           <div className="hidden lg:block" />

@@ -17,7 +17,7 @@ import {
 
 export const metadata: Metadata = {
   title: `${PRODUCT_NAME} | Landing concept 1`,
-  description: "A dashboard-led landing page concept for HelpDock AI."
+  description: "A dashboard-led landing page concept for AskDoc."
 };
 
 export default function LandingOnePage() {

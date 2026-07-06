@@ -53,7 +53,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           </SubmitButton>
         </form>
         <p className="mt-5 text-center text-sm text-muted-foreground">
-          New to HelpDock?{" "}
+          New to AskDoc?{" "}
           <Link href={`/signup?next=${encodeURIComponent(nextPath)}`} className="font-medium text-primary hover:underline">
             Create an account
           </Link>

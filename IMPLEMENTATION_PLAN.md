@@ -23,7 +23,7 @@ This plan assumes we can skip the marketing landing page and focus on the produc
 
 ## Product Scope
 
-Build a real MVP for a SaaS product called something like **HelpDock AI**: users create a workspace, upload company knowledge, train a chatbot, test it in-app, and embed it on their own site.
+Build a real MVP for a SaaS product called something like **AskDoc**: users create a workspace, upload company knowledge, train a chatbot, test it in-app, and embed it on their own site.
 
 Core objects:
 

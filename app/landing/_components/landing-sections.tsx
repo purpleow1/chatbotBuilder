@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
 import {
@@ -20,7 +21,8 @@ import { Button } from "@/components/ui/button";
 import { PLAN_CONFIGS, PLAN_ORDER } from "@/lib/plans";
 import { cn } from "@/lib/utils";
 
-export const PRODUCT_NAME = "HelpDock AI";
+export const PRODUCT_NAME = "AskDoc";
+export const LOGO_SRC = "/logos/askdoc-logo.svg";
 export const SIGNUP_HREF = "/signup?next=%2Fapp%2Fbots%2Fnew";
 export const LOGIN_HREF = "/login?next=%2Fapp";
 
@@ -31,11 +33,8 @@ type LandingHeaderProps = {
 
 export function BrandMark({ className }: { className?: string }) {
   return (
-    <Link href="/app" className={cn("inline-flex items-center gap-2 text-foreground", className)}>
-      <span className="flex size-10 items-center justify-center rounded-md bg-primary text-primary-foreground">
-        <BotMessageSquare className="size-5" />
-      </span>
-      <span className="text-lg font-semibold tracking-tight">{PRODUCT_NAME}</span>
+    <Link href="/app" className={cn("inline-flex items-center text-foreground", className)}>
+      <Image src={LOGO_SRC} alt={`${PRODUCT_NAME} logo`} width={140} height={40} priority className="h-10 w-auto" />
     </Link>
   );
 }
@@ -96,7 +95,7 @@ export function HeroActions({ secondaryHref = "/app" }: { secondaryHref?: Route 
 }
 
 export function DashboardScene({ className }: { className?: string }) {
-  const sources = ["refund-policy.txt", "pricing-support.csv", "helpdock-faq.md"];
+  const sources = ["refund-policy.txt", "pricing-support.csv", "askdoc-faq.md"];
   const steps = ["Create bot", "Upload docs", "Test answer", "Publish widget"];
 
   return (
@@ -105,7 +104,7 @@ export function DashboardScene({ className }: { className?: string }) {
         <span className="size-3 rounded-full bg-rose-400" />
         <span className="size-3 rounded-full bg-amber-400" />
         <span className="size-3 rounded-full bg-emerald-500" />
-        <span className="ml-3 h-5 w-56 rounded bg-white text-[11px] leading-5 text-slate-400">app.helpdock.ai/app/bots/acme</span>
+        <span className="ml-3 h-5 w-56 rounded bg-white text-[11px] leading-5 text-slate-400">app.askdoc.ai/app/bots/acme</span>
       </div>
       <div className="grid h-[480px] grid-cols-[190px_1fr_270px] bg-slate-100">
         <aside className="border-r bg-white p-4">
@@ -182,7 +181,7 @@ export function DashboardScene({ className }: { className?: string }) {
         <aside className="border-l bg-white p-4">
           <div className="rounded-lg border bg-slate-50 p-4">
             <div className="mb-4 flex items-center gap-2">
-              <span className="flex size-9 items-center justify-center rounded-md bg-accent text-accent-foreground">HD</span>
+              <span className="flex size-9 items-center justify-center rounded-md bg-accent text-accent-foreground">AD</span>
               <div>
                 <p className="text-sm font-semibold">Website widget</p>
                 <p className="text-xs text-slate-500">Customer view</p>
@@ -250,10 +249,10 @@ export function WidgetScene({ className }: { className?: string }) {
             <div className="flex items-center justify-between border-b px-4 py-3">
               <div className="flex items-center gap-2">
                 <span className="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground text-xs font-semibold">
-                  HD
+                  AD
                 </span>
                 <div>
-                  <p className="text-sm font-semibold">HelpDock AI</p>
+                  <p className="text-sm font-semibold">AskDoc</p>
                   <p className="text-xs text-slate-500">Typically replies now</p>
                 </div>
               </div>
@@ -296,7 +295,7 @@ export function LaunchScene({ className }: { className?: string }) {
     {
       title: "Knowledge",
       icon: UploadCloud,
-      items: ["helpdock-faq.md", "security-and-sla.pdf", "pricing-support.csv"]
+      items: ["askdoc-faq.md", "askdoc-security-and-sla.pdf", "pricing-support.csv"]
     },
     {
       title: "Review",
@@ -354,7 +353,7 @@ export function LaunchScene({ className }: { className?: string }) {
           <p className="text-sm font-medium text-white/70">Install snippet</p>
           <pre className="mt-4 overflow-hidden rounded-lg border border-white/10 bg-black p-4 text-xs leading-6 text-emerald-200">
             {`<script
-  src="https://app.helpdock.ai/embed.js"
+  src="https://app.askdoc.ai/embed.js"
   data-bot-id="acme-support"
 ></script>`}
           </pre>

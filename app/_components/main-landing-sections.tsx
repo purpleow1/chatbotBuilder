@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { Route } from "next";
 import {
   ArrowRight,
   BotMessageSquare,
@@ -38,40 +37,42 @@ export function MainLandingHeader({ active, className }: MainLandingHeaderProps)
   ] as const;
 
   return (
-    <header className={cn("mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-5", className)}>
-      <Link href="/app" className="inline-flex items-center text-foreground">
-        <Image src={LOGO_SRC} alt={`${PRODUCT_NAME} logo`} width={140} height={40} priority className="h-10 w-auto" />
-      </Link>
-      <nav className="hidden items-center gap-1 md:flex">
-        {links.map(([label, href, key]) => (
-          <Link
-            key={label}
-            href={href}
-            className={cn(
-              "rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground",
-              active === key && "bg-muted text-foreground"
-            )}
-          >
-            {label}
-          </Link>
-        ))}
-      </nav>
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" asChild className="hidden md:inline-flex">
-          <Link href={LOGIN_HREF}>Log in</Link>
-        </Button>
-        <Button asChild>
-          <Link href={SIGNUP_HREF}>
-            Start free
-            <ArrowRight className="size-4" />
-          </Link>
-        </Button>
+    <header className={cn("sticky top-0 z-50 w-full border-b bg-background/90 backdrop-blur", className)}>
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-5">
+        <Link href="/app" className="inline-flex items-center text-foreground">
+          <Image src={LOGO_SRC} alt={`${PRODUCT_NAME} logo`} width={140} height={40} priority className="h-10 w-auto" />
+        </Link>
+        <nav className="hidden items-center gap-1 md:flex">
+          {links.map(([label, href, key]) => (
+            <Link
+              key={label}
+              href={href}
+              className={cn(
+                "rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground",
+                active === key && "bg-muted text-foreground"
+              )}
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" asChild className="hidden md:inline-flex">
+            <Link href={LOGIN_HREF}>Log in</Link>
+          </Button>
+          <Button asChild>
+            <Link href={SIGNUP_HREF}>
+              Start free
+              <ArrowRight className="size-4" />
+            </Link>
+          </Button>
+        </div>
       </div>
     </header>
   );
 }
 
-export function MainHeroActions({ secondaryHref = "/app" }: { secondaryHref?: Route }) {
+export function MainHeroActions() {
   return (
     <div className="flex flex-wrap items-center gap-3">
       <Button size="lg" asChild>
@@ -80,15 +81,12 @@ export function MainHeroActions({ secondaryHref = "/app" }: { secondaryHref?: Ro
           <ArrowRight className="size-4" />
         </Link>
       </Button>
-      <Button size="lg" variant="outline" asChild>
-        <Link href={secondaryHref}>Open app</Link>
-      </Button>
     </div>
   );
 }
 
 export function MainDashboardScene({ className }: { className?: string }) {
-  const sources = ["refund-policy.txt", "pricing-support.csv", "helpdock-faq.md"];
+  const sources = ["refund-policy.txt", "pricing-support.csv", "askdoc-faq.md"];
   const steps = ["Create bot", "Upload docs", "Test answer", "Publish widget"];
 
   return (
@@ -130,11 +128,6 @@ export function MainDashboardScene({ className }: { className?: string }) {
                 {step}
               </div>
             ))}
-          </div>
-          <div className="mt-6 rounded-md border bg-slate-50 p-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Capacity</p>
-            <p className="mt-2 text-2xl font-semibold">42 / 100</p>
-            <p className="text-xs text-slate-500">Knowledge documents</p>
           </div>
         </aside>
 
@@ -249,8 +242,8 @@ export function MainFeatureGrid({ variant = "default" }: { variant?: "default" |
     ["Source visibility", "Show filenames and chunks during testing, then decide whether the bot can mention them.", ShieldCheck],
     ["Widget controls", "Enable, disable, style, and place the embedded chat without touching the host page.", PlugZap],
     ["Plan gates", "Free trials stay useful while Pro unlocks more bots, docs, theme controls, and branding removal.", Paintbrush],
-    ["Fast onboarding", "Signup leads directly to a bot setup flow with clear limits and upgrade paths.", Zap],
-    ["Real support scope", "Focused on docs, FAQs, billing questions, policies, and customer self-service.", MessageSquare]
+    ["Real support scope", "Focused on docs, FAQs, billing questions, policies, and customer self-service.", MessageSquare],
+    ["Fast onboarding", "Signup leads directly to a bot setup flow with clear limits and upgrade paths.", Zap]
   ] as const;
 
   return (
@@ -328,7 +321,7 @@ export function MainPricingSection({ headline = "Pricing that fits a real launch
                   {config.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-2 text-sm">
                       <Check className={cn("mt-0.5 size-4 shrink-0", highlighted ? "text-accent" : "text-primary")} />
-                      <span>{feature.replace("HelpDock", PRODUCT_NAME)}</span>
+                      <span>{feature}</span>
                     </li>
                   ))}
                 </ul>

@@ -1,4 +1,4 @@
-# HelpDock AI
+# AskDoc
 
 Embeddable chatbot builder MVP: upload company knowledge, turn it into a grounded AI support bot, test it in a ChatGPT-like in-app chat, and publish the same bot as an embeddable website widget.
 

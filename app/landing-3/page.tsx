@@ -14,7 +14,7 @@ import {
 
 export const metadata: Metadata = {
   title: `${PRODUCT_NAME} | Landing concept 3`,
-  description: "A workflow-led landing page concept for HelpDock AI."
+  description: "A workflow-led landing page concept for AskDoc."
 };
 
 export default function LandingThreePage() {
@@ -22,7 +22,7 @@ export default function LandingThreePage() {
     ["Collect knowledge", "Upload docs, policies, spreadsheets, and FAQ files into a single bot project.", FileStack],
     ["Review answers", "Ask the questions customers already ask and inspect the source context below replies.", MessageCircleQuestion],
     ["Set the widget", "Choose welcome copy, position, color, availability, and source reference behavior.", ClipboardCheck],
-    ["Launch support", "Install one script on the website and keep improvements inside the HelpDock workspace.", Rocket]
+    ["Launch support", "Install one script on the website and keep improvements inside the AskDoc workspace.", Rocket]
   ] as const;
 
   return (
@@ -89,7 +89,7 @@ export default function LandingThreePage() {
             <p className="text-sm font-semibold text-accent">MVP scope</p>
             <h2 className="mt-2 text-3xl font-semibold tracking-tight">Focused enough to demo, complete enough to believe.</h2>
             <p className="mt-4 text-sm leading-6 text-white/70">
-              HelpDock AI keeps the product surface tight: bot setup, knowledge ingestion, chat testing, widget install,
+              AskDoc keeps the product surface tight: bot setup, knowledge ingestion, chat testing, widget install,
               and pricing gates. Each feature supports the same launch story.
             </p>
           </div>

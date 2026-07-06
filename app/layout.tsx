@@ -3,7 +3,7 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 
 export const metadata: Metadata = {
-  title: "HelpDock AI",
+  title: "AskDoc",
   description: "Build, test, and embed support chatbots trained on company knowledge."
 };
 

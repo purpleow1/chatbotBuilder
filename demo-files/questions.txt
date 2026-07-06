@@ -1,13 +1,13 @@
 Demo questions for uploaded knowledge files
 
-PDF: helpdock-security-and-sla.pdf
+PDF: askdoc-security-and-sla.pdf
 - Where are uploaded source documents stored?
 - How is retrieval scoped between workspaces?
 - What should happen when a document is deleted?
 - What is the Business plan support response target?
 - What are the known demo limitations?
 
-DOCX: helpdock-onboarding-playbook.docx
+DOCX: askdoc-onboarding-playbook.docx
 - What should we test before enabling the widget?
 - When should the bot escalate to a human?
 - Who is the default escalation contact?
@@ -18,12 +18,12 @@ Cross-file questions
 - Compare Free, Pro, and Business support response times and plan limits.
 - Which source says how to install the widget?
 - What should the bot do when it cannot answer from uploaded knowledge?
-- Does HelpDock AI integrate with Salesforce?
+- Does AskDoc integrate with Salesforce?
 
 
 What file types can I upload?
 How do I install the website widget?
-Can I remove HelpDock branding?
+Can I remove AskDoc branding?
 What is the refund window?
 What happens after I cancel a monthly subscription?
 Compare the Free and Pro plans.

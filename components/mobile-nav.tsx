@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import type { Route } from "next";
-import { BarChart3, Bot, BotMessageSquare, CreditCard, Home, Menu, X } from "lucide-react";
+import { BarChart3, Bot, CreditCard, Home, Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,9 @@ const navItems = [
   { href: "/app/bots" as Route, label: "Bots", icon: Bot },
   { href: "/app/billing" as Route, label: "Billing", icon: CreditCard }
 ];
+
+const LOGO_SRC = "/logos/askdoc-logo.svg";
+const PRODUCT_NAME = "AskDoc";
 
 type MobileNavProps = {
   planName: string;
@@ -47,10 +51,7 @@ export function MobileNav({ planName, planSummary }: MobileNavProps) {
           >
             <div className="flex h-16 shrink-0 items-center justify-between border-b bg-card px-4">
               <Link href="/app" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-                <span className="flex size-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                  <BotMessageSquare className="size-5" />
-                </span>
-                <span className="font-semibold">HelpDock AI</span>
+                <Image src={LOGO_SRC} alt={`${PRODUCT_NAME} logo`} width={120} height={34} priority className="h-9 w-auto" />
               </Link>
               <Button type="button" variant="ghost" size="icon" aria-label="Close menu" onClick={() => setOpen(false)}>
                 <X className="size-5" />

@@ -11,17 +11,17 @@ const loaderScript = String.raw`
   if (!botId) return;
 
   var baseUrl = new URL(script.src).origin;
-  var existing = document.querySelector('[data-helpdock-widget="' + botId + '"]');
+  var existing = document.querySelector('[data-askdoc-widget="' + botId + '"]');
   if (existing) return;
 
   var root = document.createElement("div");
-  root.setAttribute("data-helpdock-widget", botId);
+  root.setAttribute("data-askdoc-widget", botId);
   root.style.position = "fixed";
   root.style.zIndex = script.getAttribute("data-z-index") || "2147483000";
   root.style.fontFamily = 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 
   var panel = document.createElement("iframe");
-  panel.title = "HelpDock AI chat";
+  panel.title = "AskDoc chat";
   panel.src = baseUrl + "/widget/" + encodeURIComponent(botId) + "?embed=1";
   panel.allow = "clipboard-write";
   panel.style.width = "min(390px, calc(100vw - 32px))";

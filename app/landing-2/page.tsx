@@ -12,7 +12,7 @@ import {
 
 export const metadata: Metadata = {
   title: `${PRODUCT_NAME} | Landing concept 2`,
-  description: "A widget-led landing page concept for HelpDock AI."
+  description: "A widget-led landing page concept for AskDoc."
 };
 
 export default function LandingTwoPage() {
@@ -87,7 +87,7 @@ export default function LandingTwoPage() {
             {[
               "Ask questions in the in-app chat before publishing.",
               "Review source snippets under each answer during testing.",
-              "Upgrade to customize styling and remove HelpDock branding.",
+              "Upgrade to customize styling and remove AskDoc branding.",
               "Use one snippet to add the widget to a separate website."
             ].map((item) => (
               <div key={item} className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm">
