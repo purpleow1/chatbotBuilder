@@ -83,7 +83,7 @@ export function MainHeroActions() {
     <div className="flex flex-wrap items-center gap-3">
       <Button size="lg" asChild>
         <Link href={SIGNUP_HREF}>
-          Create your first assistant
+          Create your first bot
           <ArrowRight className="size-4" />
         </Link>
       </Button>
@@ -93,7 +93,7 @@ export function MainHeroActions() {
 
 export function MainDashboardScene({ className }: { className?: string }) {
   const sources = ["team-handbook.pdf", "partner-playbook.csv", "product-docs.md"];
-  const steps = ["Create assistant", "Upload docs", "Test answer", "Publish widget"];
+  const steps = ["Create bot", "Upload docs", "Test answer", "Publish widget"];
 
   return (
     <div className={cn("relative overflow-hidden rounded-lg border bg-white shadow-2xl shadow-slate-900/12", className)}>
@@ -103,8 +103,8 @@ export function MainDashboardScene({ className }: { className?: string }) {
         <span className="size-3 rounded-full bg-emerald-500" />
         <span className="ml-3 h-5 w-56 rounded bg-white text-[11px] leading-5 text-slate-400">app.askdoc.ai/app/bots/acme</span>
       </div>
-      <div className="grid h-[480px] grid-cols-[190px_1fr_270px] bg-slate-100">
-        <aside className="border-r bg-white p-4">
+      <div className="grid h-[480px] grid-cols-[150px_minmax(0,1fr)_210px] bg-slate-100 lg:grid-cols-[170px_minmax(0,1fr)_250px] xl:grid-cols-[190px_minmax(0,1fr)_270px]">
+        <aside className="border-r bg-white p-3 lg:p-4">
           <div className="mb-5 flex items-center gap-2">
             <span className="flex size-8 items-center justify-center rounded-md bg-primary/10 text-primary">
               <LayoutDashboard className="size-4" />
@@ -119,7 +119,7 @@ export function MainDashboardScene({ className }: { className?: string }) {
               <div
                 key={step}
                 className={cn(
-                  "flex items-center gap-2 rounded-md px-3 py-2 text-sm",
+                  "flex items-center gap-2 rounded-md px-2 py-2 text-xs lg:px-3 lg:text-sm",
                   index === 2 ? "bg-primary text-primary-foreground" : "text-slate-600"
                 )}
               >
@@ -137,7 +137,7 @@ export function MainDashboardScene({ className }: { className?: string }) {
           </div>
         </aside>
 
-        <section className="p-5">
+        <section className="min-w-0 p-4 lg:p-5">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold">Answer testing</p>
@@ -161,7 +161,7 @@ export function MainDashboardScene({ className }: { className?: string }) {
               </div>
             </div>
             <div className="ml-auto max-w-[78%] rounded-lg rounded-br-sm bg-slate-900 px-4 py-3 text-sm text-white">
-              Can I publish this assistant on our docs site?
+              Can I publish this bot on our docs site?
             </div>
             <div className="max-w-[88%] rounded-lg rounded-bl-sm border bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
               Yes. Copy the widget snippet from bot settings, choose the welcome message and theme, then keep improving
@@ -170,12 +170,12 @@ export function MainDashboardScene({ className }: { className?: string }) {
           </div>
         </section>
 
-        <aside className="border-l bg-white p-4">
-          <div className="rounded-lg border bg-slate-50 p-4">
+        <aside className="border-l bg-white p-3 lg:p-4">
+          <div className="rounded-lg border bg-slate-50 p-3 lg:p-4">
             <div className="mb-4 flex items-center gap-2">
               <span className="flex size-9 items-center justify-center rounded-md bg-accent text-accent-foreground">AD</span>
               <div>
-                <p className="text-sm font-semibold">AskDoc assistant</p>
+                <p className="text-sm font-semibold">AskDoc bot</p>
                 <p className="text-xs text-slate-500">Embedded view</p>
               </div>
             </div>
@@ -204,7 +204,7 @@ export function MainDashboardScene({ className }: { className?: string }) {
 
 export function MainWorkflowBand({ title = "From docs to live widget in four steps" }: { title?: string }) {
   const steps = [
-    ["Create", "Name the assistant, define its audience, fallback copy, and widget basics.", BotMessageSquare],
+    ["Create", "Name the bot, define its audience, fallback copy, and widget basics.", BotMessageSquare],
     ["Upload", "Add PDF, DOCX, markdown, text, and CSV knowledge sources.", FileText],
     ["Test", "Ask real customer, team, and partner questions while reviewing source chunks.", MessageSquare],
     ["Embed", "Copy one script tag and control availability from the app.", Code2]
@@ -292,9 +292,9 @@ export function MainFeatureGrid({ variant = "default" }: { variant?: "default" |
     ["Grounded chat", "Answers use the uploaded knowledge base instead of generic AI guesses.", SearchCheck],
     ["Source visibility", "Show filenames and chunks during testing, then decide whether the bot can mention them.", ShieldCheck],
     ["Widget controls", "Enable, disable, style, and place the embedded chat without touching the host page.", PlugZap],
-    ["Plan gates", "Free trials stay useful while Pro unlocks more assistants, docs, theme controls, and branding removal.", Paintbrush],
-    ["Use-case fit", "Create assistants for support, internal knowledge, product docs, partners, onboarding, and sales.", MessageSquare],
-    ["Fast onboarding", "Signup leads directly to assistant setup with clear limits and upgrade paths.", Zap]
+    ["Plan gates", "Free trials stay useful while Pro unlocks more bots, docs, theme controls, and branding removal.", Paintbrush],
+    ["Use-case fit", "Create bots for support, internal knowledge, product docs, partners, onboarding, and sales.", MessageSquare],
+    ["Fast onboarding", "Signup leads directly to bot setup with clear limits and upgrade paths.", Zap]
   ] as const;
 
   return (
@@ -302,10 +302,10 @@ export function MainFeatureGrid({ variant = "default" }: { variant?: "default" |
       <div className="mx-auto max-w-6xl px-6 py-16">
         <div className="max-w-2xl">
           <p className="text-sm font-semibold text-primary">Product surface</p>
-          <h2 className="mt-2 text-3xl font-semibold tracking-tight">Everything needed for useful knowledge assistants.</h2>
+          <h2 className="mt-2 text-3xl font-semibold tracking-tight">Everything needed for useful knowledge bots.</h2>
           <p className="mt-4 text-muted-foreground">
-            The landing page promise matches the real app: create assistants, upload knowledge, test answers, publish
-            widgets, and upgrade when limits are reached.
+            The landing page promise matches the real app: create bots, upload knowledge, test answers, publish widgets,
+            and upgrade when limits are reached.
           </p>
         </div>
         <div className="mt-10 grid gap-4 md:grid-cols-3">
@@ -334,8 +334,8 @@ export function MainPricingSection({ headline = "Pricing that fits a real launch
             <h2 className="mt-2 max-w-2xl text-3xl font-semibold tracking-tight">{headline}</h2>
           </div>
           <p className="max-w-md text-sm leading-6 text-muted-foreground">
-            Start free with one assistant and five documents. Upgrade when you need more knowledge sources, more widgets,
-            custom styling, and higher message volume.
+            Start free with one bot and five documents. Upgrade when you need more knowledge sources, more widgets, custom
+            styling, and higher message volume.
           </p>
         </div>
         <div className="mt-10 grid gap-4 md:grid-cols-3">
@@ -388,7 +388,7 @@ export function MainPricingSection({ headline = "Pricing that fits a real launch
   );
 }
 
-export function MainFinalCta({ copy = "Upload five docs, test one assistant, and see the widget before you think about a paid plan." }) {
+export function MainFinalCta({ copy = "Upload five docs, test one bot, and see the widget before you think about a paid plan." }) {
   return (
     <section className="bg-slate-950 text-white">
       <div className="mx-auto flex max-w-6xl flex-col justify-between gap-8 px-6 py-14 md:flex-row md:items-center">

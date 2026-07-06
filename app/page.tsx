@@ -16,7 +16,7 @@ import {
 } from "@/app/_components/main-landing-sections";
 
 export const metadata: Metadata = {
-  title: `${PRODUCT_NAME} | Company knowledge assistant builder`,
+  title: `${PRODUCT_NAME} | Company knowledge bot builder`,
   description: "Turn company docs into grounded AI assistants for customers, employees, partners, and website visitors."
 };
 
@@ -24,7 +24,7 @@ export default function HomePage() {
   const productHighlights = [
     ["Knowledge upload", "Drag in policies, product docs, playbooks, decks, and CSVs with visible ingestion states.", FileText],
     ["Private answer testing", "Ask real team, prospect, and customer questions in a ChatGPT-like workspace before launch.", MessageSquare],
-    ["One-line embed", "Copy the script tag, control availability, and publish the same assistant to any website.", PlugZap]
+    ["One-line embed", "Copy the script tag, control availability, and publish the same bot to any website.", PlugZap]
   ] as const;
 
   return (
@@ -32,18 +32,18 @@ export default function HomePage() {
       <MainLandingHeader active="product" />
 
       <section className="relative overflow-hidden border-y bg-[#eef7f4]">
-        <div className="absolute left-1/2 top-[500px] hidden w-[1080px] -translate-x-1/2 md:block">
+        <div className="absolute inset-x-6 top-[500px] mx-auto hidden max-w-[1080px] md:block">
           <MainDashboardScene />
         </div>
         <div className="relative z-10 mx-auto max-w-6xl px-6 pb-12 pt-12 md:pb-[690px] md:pt-16">
-          <p className="text-sm font-semibold text-primary">Company knowledge assistant builder</p>
+          <p className="text-sm font-semibold text-primary">Company knowledge bot builder</p>
           <h1 className="mt-4 max-w-4xl text-4xl font-semibold leading-tight tracking-tight text-slate-950 md:text-5xl">
             {PRODUCT_NAME} turns company knowledge into AI assistants for customers and teams.
           </h1>
           <div className="mt-5 flex max-w-4xl flex-col gap-5 md:flex-row md:items-start md:justify-between">
             <p className="max-w-2xl text-lg leading-8 text-slate-700">
               Upload policies, FAQs, product docs, playbooks, and spreadsheets. Test grounded answers in the app, then
-              publish the same assistant as a branded website widget.
+              publish the same bot as a branded website widget.
             </p>
             <MainHeroActions />
           </div>
@@ -66,7 +66,7 @@ export default function HomePage() {
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-slate-950">Acme Knowledge</p>
-                  <p className="text-xs text-slate-500">Partner + team assistant</p>
+                  <p className="text-xs text-slate-500">Partner + team bot</p>
                 </div>
                 <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700">Live</span>
               </div>
@@ -94,10 +94,10 @@ export default function HomePage() {
         <div className="mx-auto grid max-w-6xl gap-10 px-6 py-16 md:grid-cols-[0.85fr_1.15fr] md:items-center">
           <div>
             <p className="text-sm font-semibold text-primary">Why it works</p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-tight">One tested assistant, multiple knowledge surfaces.</h2>
+            <h2 className="mt-2 text-3xl font-semibold tracking-tight">One tested bot, multiple knowledge surfaces.</h2>
             <p className="mt-4 text-muted-foreground">
               Teams can validate answers privately, check source chunks, tune the fallback message, and then choose where
-              the assistant belongs: a public website, customer portal, docs page, or internal workspace.
+              the bot belongs: a public website, customer portal, docs page, or internal workspace.
             </p>
             <Button className="mt-7" variant="outline" asChild>
               <Link href={SIGNUP_HREF}>
