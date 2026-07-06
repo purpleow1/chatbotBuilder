@@ -1,56 +1,9 @@
 ---
-description: Project architecture and agent handoff rules for HelpDock AI
+description: Project architecture and agent handoff rules for AskDoc
 alwaysApply: true
 ---
 
 # HelpDock AI Project Rules
 
-## Architecture
-
-- Keep client components, REST API routes, and database access modules separate.
-- Fetch application data from API routes only. Do not call Supabase clients or DB helpers from React components, including Server Components.
-- Access Supabase for CRUD work from server-side API/DB modules with the service-role key only.
-- Do not use a public Supabase data client or RLS for MVP CRUD access. Supabase Realtime may use a public client only when browser Realtime is needed.
-- Use Next.js App Router, React, TypeScript, Tailwind CSS, shadcn/ui-compatible primitives, lucide-react, TanStack Query, Supabase, Gemini, and Stripe patterns already present in the repo.
-- Prefer Stripe test checkout when Stripe keys exist, with a mock billing fallback when keys are absent.
-
-## Agent Workflow
-
-- Before starting a roadmap step, read `IMPLEMENTATION_PLAN.md`, `README.md`, and the current repo state.
-- Confirm the previous dependent steps are present before implementing a later step.
-- Keep changes scoped to the requested step or feature.
-- Add or update tests for touched behavior when practical.
-- Update `README.md` and env docs when setup or usage changes.
-- Run the relevant verification command before handing off.
-- If a dev server is needed for agent verification, start it only for that verification and stop it before handing off.
-- Do not start, restart, leave running, or ask for approval to start the dev server at the end of the task. The project owner runs the handoff dev server manually.
-- If final browser/manual verification still needs the user's manually running server, say so briefly in the handoff instead of asking to start it.
-
-## Environment Variables
-
-- If you add, rename, or change any variable in `.env.example`, explicitly ask the user to add or update the same variable in `.env.local`.
-- Include where to find the value, whether it is required now, and whether deployment environments also need it.
-- Do not assume credentials, provider projects, webhooks, buckets, or redirect URLs have been configured outside the repo unless the user says so or the README documents it as already done.
-
-## Handoffs
-
-When a change touches external services, credentials, storage, webhooks, deployment, or model providers, include an integration handoff that separates:
-
-- **Implemented in repo**: files, routes, migrations, docs, or UI changed in the repository.
-- **User action required now**: external setup needed before the next requested work can continue.
-- **Required before manual testing**: setup that can wait for coding but is needed before browser/API verification.
-- **Required before deployment**: production setup needed before launch.
-
-The handoff should also name required accounts/projects, env vars/secrets for local and deployment environments, SQL migrations, dashboard settings, buckets, redirect URLs, webhooks, provider console steps, and manual verification steps after configuration.
-
-For SQL migrations, do not tell the user to manually recreate the same tables, functions, or buckets in a dashboard unless the handoff explicitly requires a dashboard-only setting. Prefer applying migration files from `supabase/migrations/` with the Supabase SQL editor or Supabase CLI.
-
-## Completion Notes
-
-At handoff, summarize:
-
-- Files changed
-- Commands run
-- Known limitations
-- Manual checks completed
-- Integration handoff, if external setup is involved
+The canonical agent instructions now live in `AGENTS.md` at the repository root.
+Read and follow that file before making changes.
