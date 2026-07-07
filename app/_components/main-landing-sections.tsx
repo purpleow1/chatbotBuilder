@@ -68,7 +68,13 @@ export function MainHeroActions() {
 
 export function MainDashboardScene({ className }: { className?: string }) {
   const sources = ["team-handbook.pdf", "partner-playbook.csv", "product-docs.md"];
-  const steps = ["Create bot", "Upload docs", "Test answer", "Publish widget"];
+  const steps = ["Create bot", "Upload docs", "Test answers", "Publish widget"];
+  const widgetSettings = [
+    ["Tone", "Friendly"],
+    ["Fallback", "Contact CTA"],
+    ["Sources", "3 files"],
+    ["Theme", "Sky"]
+  ] as const;
 
   return (
     <div className={cn("relative overflow-hidden rounded-lg border bg-white shadow-2xl shadow-slate-900/12", className)}>
@@ -76,7 +82,9 @@ export function MainDashboardScene({ className }: { className?: string }) {
         <span className="size-3 rounded-full bg-rose-400" />
         <span className="size-3 rounded-full bg-amber-400" />
         <span className="size-3 rounded-full bg-emerald-500" />
-        <span className="ml-3 h-5 w-56 rounded bg-white text-[11px] leading-5 text-slate-400">app.askdoc.ai/bots</span>
+        <span className="ml-3 h-5 w-56 rounded bg-white px-3 text-[11px] leading-5 text-slate-400">
+          app.askdoc.ai/bots
+        </span>
       </div>
       <div className="grid h-[480px] grid-cols-[150px_minmax(0,1fr)_210px] bg-slate-100 lg:grid-cols-[170px_minmax(0,1fr)_250px] xl:grid-cols-[190px_minmax(0,1fr)_270px]">
         <aside className="border-r bg-white p-3 lg:p-4">
@@ -112,13 +120,11 @@ export function MainDashboardScene({ className }: { className?: string }) {
         <section className="min-w-0 p-4 lg:p-5">
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold">Answer testing</p>
-              <p className="text-xs text-slate-500">Grounded by uploaded company knowledge</p>
+              <p className="text-sm font-semibold">Private test chat</p>
             </div>
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">Widget enabled</span>
           </div>
           <div className="space-y-3">
-            <div className="ml-auto max-w-[78%] rounded-lg rounded-br-sm bg-slate-900 px-4 py-3 text-sm text-white">
+            <div className="ml-auto max-w-[78%] rounded-lg rounded-br-sm bg-slate-700 px-4 py-3 text-sm text-white">
               What should new partners know before launch?
             </div>
             <div className="max-w-[86%] rounded-lg rounded-bl-sm border bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
@@ -132,7 +138,7 @@ export function MainDashboardScene({ className }: { className?: string }) {
                 ))}
               </div>
             </div>
-            <div className="ml-auto max-w-[78%] rounded-lg rounded-br-sm bg-slate-900 px-4 py-3 text-sm text-white">
+            <div className="ml-auto max-w-[78%] rounded-lg rounded-br-sm bg-slate-700 px-4 py-3 text-sm text-white">
               Can I publish this bot on our docs site?
             </div>
             <div className="max-w-[88%] rounded-lg rounded-bl-sm border bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
@@ -143,30 +149,51 @@ export function MainDashboardScene({ className }: { className?: string }) {
         </section>
 
         <aside className="border-l bg-white p-3 lg:p-4">
-          <div className="rounded-lg border bg-slate-50 p-3 lg:p-4">
-            <div className="mb-4 flex items-center gap-2">
-              <span className="flex size-9 items-center justify-center rounded-md bg-accent text-accent-foreground">AD</span>
+          <div className="flex h-full flex-col rounded-lg border bg-slate-50 p-3">
+            <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold">AskDoc bot</p>
-                <p className="text-xs text-slate-500">Embedded view</p>
+                <p className="whitespace-nowrap text-sm font-semibold">Widget settings</p>
+                <p className="text-xs text-slate-500">External site</p>
+              </div>
+              <span className="mt-1 size-2.5 shrink-0 rounded-full bg-emerald-500" />
+            </div>
+
+            <div className="mt-2.5 grid grid-cols-2 gap-1.5">
+              {widgetSettings.map(([label, value]) => (
+                <div key={label} className="rounded-md border bg-white px-2 pb-1.5 pt-1">
+                  <span className="text-[9px] font-semibold uppercase text-slate-400">{label}</span>
+                  <p className="mt-0.5 text-[11px] font-semibold leading-tight text-slate-700">{value}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-2.5 flex min-h-0 flex-1 flex-col">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <p className="text-xs font-semibold text-slate-600">Live site preview</p>
+                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">
+                  Enabled
+                </span>
+              </div>
+              <div className="flex min-h-0 flex-1 flex-col rounded-lg border bg-white p-2.5 shadow-sm">
+                <div className="mb-2.5 flex items-center gap-2">
+                  <span className="flex size-7 items-center justify-center rounded-md bg-sky-100 text-[11px] font-semibold text-sky-700">
+                    AD
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold leading-tight">AskDoc bot</p>
+                  </div>
+                </div>
+                <div className="flex min-h-0 flex-1 flex-col">
+                  <p className="rounded-md bg-sky-50 px-3 py-2 text-xs text-slate-600 shadow-sm">
+                    Hi, I can answer product, policy, and onboarding questions.
+                  </p>
+                  <div className="flex-1" />
+                  <div className="mt-3 h-8 rounded-md border bg-white px-3 text-xs leading-8 text-slate-400">
+                    Ask a question...
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="space-y-2">
-              <p className="rounded-md bg-white px-3 py-2 text-xs text-slate-600 shadow-sm">
-                Hi, I can answer product, policy, and onboarding questions.
-              </p>
-              <p className="rounded-md bg-slate-200 px-3 py-2 text-xs text-slate-700">
-                Ask about pricing, setup, or process.
-              </p>
-            </div>
-            <div className="mt-4 h-9 rounded-md border bg-white px-3 text-xs leading-9 text-slate-400">Ask a question...</div>
-          </div>
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            {["Tone", "Fallback", "Sources", "Theme"].map((item) => (
-              <div key={item} className="rounded-md border bg-white p-3 text-xs font-medium text-slate-600">
-                {item}
-              </div>
-            ))}
           </div>
         </aside>
       </div>
