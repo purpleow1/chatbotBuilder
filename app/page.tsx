@@ -93,7 +93,7 @@ export default function HomePage() {
             </p>
             <Button className="mt-7" variant="outline" asChild>
               <Link href={SIGNUP_HREF}>
-                Try the dashboard flow
+                Start building a bot
                 <ArrowRight className="size-4" />
               </Link>
             </Button>

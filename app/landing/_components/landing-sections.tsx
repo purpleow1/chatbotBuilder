@@ -504,7 +504,7 @@ export function PricingSection({ headline = "Pricing that fits a real launch pat
                   ))}
                 </ul>
                 <Button className="mt-7 w-full" variant={highlighted ? "secondary" : "outline"} asChild>
-                  <Link href={SIGNUP_HREF}>{plan === "free" ? "Start free" : "Upgrade path"}</Link>
+                  <Link href={SIGNUP_HREF}>{plan === "free" ? "Start free" : "Upgrade plan"}</Link>
                 </Button>
               </div>
             );

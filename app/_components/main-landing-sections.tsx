@@ -236,11 +236,11 @@ export function MainUseCaseSection() {
         <div className="max-w-2xl">
           <p className="text-sm font-semibold text-accent">Use cases</p>
           <h2 className="mt-2 max-w-xl text-3xl font-semibold tracking-tight">
-            Support is one use case. Company knowledge is the platform.
+            Start with the questions your team already answers
           </h2>
           <p className="mt-4 max-w-lg text-sm leading-6 text-white/70">
-            Build focused assistants for the places people already ask questions: public sites, product docs, customer
-            portals, partner hubs, and internal team workflows.
+            AskDoc works across customer support, internal knowledge, and sales or product enablement, without locking
+            the product to one department.
           </p>
         </div>
         <div className="mt-10 grid gap-3 md:grid-cols-3">
@@ -261,23 +261,23 @@ export function MainUseCaseSection() {
 
 export function MainFeatureGrid({ variant = "default" }: { variant?: "default" | "compact" }) {
   const features = [
-    ["Grounded chat", "Answers use the uploaded knowledge base instead of generic AI guesses.", SearchCheck],
-    ["Source visibility", "Show filenames and chunks during testing, then decide whether the bot can mention them.", ShieldCheck],
-    ["Widget controls", "Enable, disable, style, and place the embedded chat without touching the host page.", PlugZap],
-    ["Plan gates", "Free trials stay useful while Pro unlocks more bots, docs, theme controls, and branding removal.", Paintbrush],
-    ["Use-case fit", "Create bots for support, internal knowledge, product docs, partners, onboarding, and sales.", MessageSquare],
-    ["Fast onboarding", "Signup leads directly to bot setup with clear limits and upgrade paths.", Zap]
+    ["Source-backed answers", "Test responses against uploaded files and review the sources behind important claims.", SearchCheck],
+    ["Private answer testing", "Ask real customer, employee, and partner questions before anyone outside the team sees the bot.", MessageSquare],
+    ["Fallback message control", "Set what the assistant should say when the uploaded knowledge does not contain a confident answer.", ShieldCheck],
+    ["Widget theme and placement", "Match the embedded chat to your site with welcome copy, colors, positioning, and branding controls.", Paintbrush],
+    ["Availability controls", "Turn the widget on when it is ready, pause it when needed, and keep testing in the app.", PlugZap],
+    ["Plan limits that are clear upfront", "See bot, document, message, and theme limits before you hit them, with upgrade paths in context.", Zap]
   ] as const;
 
   return (
-    <section id="product" className={cn("bg-background", variant === "compact" ? "py-14" : "py-16")}>
+    <section id="controls" className={cn("bg-background", variant === "compact" ? "py-14" : "py-16")}>
       <div className="mx-auto max-w-6xl px-6 py-16">
         <div className="max-w-2xl">
-          <p className="text-sm font-semibold text-primary">Product surface</p>
-          <h2 className="mt-2 text-3xl font-semibold tracking-tight">Everything needed for useful knowledge bots.</h2>
+          <p className="text-sm font-semibold text-primary">Controls</p>
+          <h2 className="mt-2 text-3xl font-semibold tracking-tight">Stay in control before the bot goes live</h2>
           <p className="mt-4 text-muted-foreground">
-            The landing page promise matches the real app: create bots, upload knowledge, test answers, publish widgets,
-            and upgrade when limits are reached.
+            Tune the assistant, check its sources, manage the widget, and understand plan limits before customers or
+            teammates rely on it.
           </p>
         </div>
         <div className="mt-10 grid gap-4 md:grid-cols-3">
@@ -349,7 +349,7 @@ export function MainPricingSection({ headline = "Pricing that fits a real launch
                   ))}
                 </ul>
                 <Button className="mt-7 w-full" variant={highlighted ? "secondary" : "outline"} asChild>
-                  <Link href={SIGNUP_HREF}>{plan === "free" ? "Start free" : "Upgrade path"}</Link>
+                  <Link href={SIGNUP_HREF}>{plan === "free" ? "Start free" : "Upgrade plan"}</Link>
                 </Button>
               </div>
             );
@@ -367,7 +367,7 @@ export function MainFinalCta({ copy = "Upload five docs, test one bot, and see t
         <div>
           <p className="text-sm font-semibold text-accent">Ready when your docs are</p>
           <h2 className="mt-2 max-w-2xl text-3xl font-semibold tracking-tight">
-            Build the knowledge assistant people will actually use.
+            Build an assistant your team can trust.
           </h2>
           <p className="mt-4 max-w-xl text-sm leading-6 text-white/70">{copy}</p>
         </div>
