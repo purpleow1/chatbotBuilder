@@ -18,7 +18,6 @@ import {
   Zap
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MainHeaderNavReveal } from "@/app/_components/main-header-nav-reveal";
 import { PLAN_CONFIGS, PLAN_ORDER } from "@/lib/plans";
 import { cn } from "@/lib/utils";
 
@@ -28,24 +27,16 @@ export const SIGNUP_HREF = "/signup?next=%2Fapp%2Fbots%2Fnew";
 export const LOGIN_HREF = "/login?next=%2Fapp";
 
 type MainLandingHeaderProps = {
-  active?: "product" | "workflow";
   className?: string;
 };
 
-export function MainLandingHeader({ active, className }: MainLandingHeaderProps) {
-  const links = [
-    ["Product", "#product", "product"],
-    ["How it works", "#workflow", "workflow"],
-    ["Pricing", "#pricing", "pricing"]
-  ] as const;
-
+export function MainLandingHeader({ className }: MainLandingHeaderProps) {
   return (
     <header className={cn("sticky top-0 z-50 w-full border-b bg-background/90 backdrop-blur", className)}>
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-5">
         <Link href="/app" className="inline-flex items-center text-foreground">
           <Image src={LOGO_SRC} alt={`${PRODUCT_NAME} logo`} width={140} height={40} priority className="h-10 w-auto" />
         </Link>
-        <MainHeaderNavReveal active={active} links={links} />
         <div className="flex items-center gap-2">
           <Button variant="ghost" asChild className="hidden md:inline-flex">
             <Link href={LOGIN_HREF}>Log in</Link>
@@ -185,24 +176,24 @@ export function MainDashboardScene({ className }: { className?: string }) {
 
 export function MainHowItWorksSection() {
   const steps = [
-    ["Create the assistant", "Choose the audience, purpose, tone, fallback message, and widget basics.", BotMessageSquare],
-    ["Upload trusted knowledge", "Add docs, policies, product guides, playbooks, PDFs, markdown files, and CSVs.", FileText],
-    ["Test real questions", "Ask customer, team, and sales questions privately while reviewing the sources behind each answer.", MessageSquare],
-    ["Publish where it belongs", "Copy the embed snippet, enable the widget, and keep improving the same assistant from the dashboard.", Code2]
+    ["Create the assistant", "Choose the audience, purpose, tone, and fallback behavior.", BotMessageSquare],
+    ["Upload trusted knowledge", "Add the docs, guides, policies, and playbooks it should answer from.", FileText],
+    ["Test real questions", "Check answers privately and review the sources behind them.", MessageSquare],
+    ["Publish where it belongs", "Enable the widget, copy the embed code, and keep improving it.", Code2]
   ] as const;
 
   return (
     <section className="border-y bg-white">
-      <div className="mx-auto max-w-6xl px-6 py-16">
+      <div className="mx-auto max-w-7xl px-6 py-16">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div className="max-w-2xl">
-            <p className="text-sm font-semibold text-primary">How AskDoc works</p>
+            <p className="text-sm font-semibold text-primary">How it works</p>
             <h2 className="mt-2 text-3xl font-semibold tracking-tight">
               Build once. Test privately. Publish anywhere.
             </h2>
             <p className="mt-4 text-muted-foreground">
               Turn trusted company materials into assistants your customers, employees, and partners can use wherever
-              questions happen: on your site, in docs, in portals, or inside team workflows.
+              questions happen: on your site, in customer portals, or inside team workflows.
             </p>
           </div>
           <Button variant="outline" asChild className="w-fit">
@@ -212,9 +203,9 @@ export function MainHowItWorksSection() {
             </Link>
           </Button>
         </div>
-        <div className="mt-10 grid gap-4 md:grid-cols-4">
+        <div className="mt-10 grid gap-3 md:grid-cols-4">
           {steps.map(([step, copy, Icon], index) => (
-            <div key={step} className="rounded-lg border bg-background p-5">
+            <div key={step} className="rounded-lg border bg-background p-4 xl:p-5">
               <span className="flex size-10 items-center justify-center rounded-md bg-primary/10 text-primary">
                 <Icon className="size-5" />
               </span>

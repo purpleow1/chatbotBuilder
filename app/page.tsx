@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <MainLandingHeader active="product" />
+      <MainLandingHeader />
 
       <section className="relative overflow-hidden border-y bg-[#eef7f4]">
         <div className="absolute inset-x-0 top-0 h-[520px] bg-[linear-gradient(180deg,#dff2eb_0%,#eef7f4_68%,rgba(238,247,244,0)_100%)]" />
