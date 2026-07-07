@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 export default function HomePage() {
   const productHighlights = [
     ["Knowledge upload", "Drag in policies, product docs, playbooks, decks, and CSVs with visible ingestion states.", FileText],
-    ["Private answer testing", "Ask real team, prospect, and customer questions in a ChatGPT-like workspace before launch.", MessageSquare],
+    ["Private answer testing", "Ask real team, prospect, and customer questions in a private testing workspace before launch.", MessageSquare],
     ["One-line embed", "Copy the script tag, control availability, and publish the same bot to any website.", PlugZap]
   ] as const;
 
@@ -85,11 +85,11 @@ export default function HomePage() {
       <section id="product" className="bg-white">
         <div className="mx-auto grid max-w-6xl gap-10 px-6 py-16 md:grid-cols-[0.85fr_1.15fr] md:items-center">
           <div>
-            <p className="text-sm font-semibold text-primary">Why it works</p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-tight">One tested bot, multiple knowledge surfaces.</h2>
+            <p className="text-sm font-semibold text-primary">Product loop</p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-tight">Build once. Publish wherever questions happen.</h2>
             <p className="mt-4 text-muted-foreground">
-              Teams can validate answers privately, check source chunks, tune the fallback message, and then choose where
-              the bot belongs: a public website, customer portal, docs page, or internal workspace.
+              Create one trusted knowledge assistant, test its answers privately, then publish it to a website, docs page,
+              customer portal, or internal team workspace.
             </p>
             <Button className="mt-7" variant="outline" asChild>
               <Link href={SIGNUP_HREF}>
@@ -116,8 +116,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <MainUseCaseSection />
       <MainWorkflowBand />
+      <MainUseCaseSection />
       <MainFeatureGrid variant="compact" />
       <MainPricingSection />
       <MainFinalCta />

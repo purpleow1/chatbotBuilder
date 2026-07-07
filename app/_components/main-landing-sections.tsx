@@ -4,12 +4,10 @@ import {
   ArrowRight,
   BookOpen,
   BotMessageSquare,
-  Briefcase,
   Check,
   ChevronRight,
   Code2,
   FileText,
-  GraduationCap,
   Handshake,
   LayoutDashboard,
   MessageSquare,
@@ -17,8 +15,6 @@ import {
   PlugZap,
   SearchCheck,
   ShieldCheck,
-  ShoppingBag,
-  Users,
   Zap
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -230,19 +226,14 @@ export function MainWorkflowBand({ title = "From docs to live widget in four ste
 export function MainUseCaseSection() {
   const useCases = [
     ["Customer support", "Answer repetitive FAQs, refunds, setup, troubleshooting, and policy questions from approved docs.", MessageSquare],
-    ["Internal knowledge", "Give employees one place to ask about benefits, tools, SOPs, org rules, and company process.", Users],
-    ["Sales enablement", "Help prospects and reps compare plans, explain integrations, handle objections, and find proof points.", Briefcase],
-    ["Product docs", "Turn API references, changelogs, help articles, and release notes into a conversational product expert.", BookOpen],
-    ["Employee onboarding", "Guide new hires through equipment, security, rituals, handbooks, and where important resources live.", GraduationCap],
-    ["Partner portals", "Give agencies, resellers, and clients self-serve answers from decks, timelines, playbooks, and FAQs.", Handshake],
-    ["E-commerce concierge", "Embed a shopper assistant for sizing, materials, shipping, returns, care, and product comparisons.", ShoppingBag],
-    ["Operations playbooks", "Make SOPs, escalation paths, incident notes, and recurring workflows searchable through chat.", SearchCheck]
+    ["Internal knowledge", "Give employees one place to ask about benefits, tools, SOPs, org rules, and company process.", BookOpen],
+    ["Sales enablement", "Help prospects and reps compare plans, explain integrations, handle objections, and find proof points.", Handshake]
   ] as const;
 
   return (
     <section className="bg-slate-950 text-white">
-      <div className="mx-auto grid max-w-6xl gap-10 px-6 py-16 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
-        <div>
+      <div className="mx-auto max-w-6xl px-6 py-16">
+        <div className="max-w-2xl">
           <p className="text-sm font-semibold text-accent">Use cases</p>
           <h2 className="mt-2 max-w-xl text-3xl font-semibold tracking-tight">
             Support is one use case. Company knowledge is the platform.
@@ -252,18 +243,14 @@ export function MainUseCaseSection() {
             portals, partner hubs, and internal team workflows.
           </p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="mt-10 grid gap-3 md:grid-cols-3">
           {useCases.map(([title, copy, Icon]) => (
             <div key={title} className="rounded-lg border border-white/10 bg-white/[0.06] p-4">
-              <div className="flex items-start gap-3">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-white text-primary">
-                  <Icon className="size-5" />
-                </span>
-                <div>
-                  <h3 className="font-semibold">{title}</h3>
-                  <p className="mt-1 text-sm leading-6 text-white/70">{copy}</p>
-                </div>
-              </div>
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-white text-primary">
+                <Icon className="size-5" />
+              </span>
+              <h3 className="mt-5 font-semibold">{title}</h3>
+              <p className="mt-2 text-sm leading-6 text-white/70">{copy}</p>
             </div>
           ))}
         </div>
