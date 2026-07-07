@@ -15,24 +15,35 @@ export function HeroChatAnimationFrame({ children, className }: HeroChatAnimatio
   useEffect(() => {
     const element = ref.current;
 
-    if (!element || isActive) {
+    if (!element) {
       return;
     }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry?.intersectionRatio >= 0.5) {
-          setIsActive(true);
-          observer.disconnect();
+        if (!entry) {
+          return;
         }
+
+        setIsActive((current) => {
+          if (entry.intersectionRatio >= 0.45) {
+            return true;
+          }
+
+          if (!entry.isIntersecting || entry.intersectionRatio <= 0.05) {
+            return false;
+          }
+
+          return current;
+        });
       },
-      { threshold: 0.5 }
+      { threshold: [0, 0.05, 0.45] }
     );
 
     observer.observe(element);
 
     return () => observer.disconnect();
-  }, [isActive]);
+  }, []);
 
   return (
     <div ref={ref} className={cn(isActive && "hero-chat-active", className)}>
