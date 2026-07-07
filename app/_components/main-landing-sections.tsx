@@ -263,8 +263,8 @@ export function MainWorkflowBand({ title = "From docs to live widget in four ste
 export function MainUseCaseSection() {
   const useCases = [
     ["Customer support", "Answer repetitive FAQs, refunds, setup, troubleshooting, and policy questions from approved docs.", MessageSquare],
-    ["Internal knowledge", "Give employees one place to ask about benefits, tools, SOPs, org rules, and company process.", BookOpen],
-    ["Sales enablement", "Help prospects and reps compare plans, explain integrations, handle objections, and find proof points.", Handshake]
+    ["Website conversion", "Help visitors understand your product, compare plans, and get answers before they book a demo or contact support.", Handshake],
+    ["Internal knowledge", "Give your team one place to ask about policies, tools, processes, and how work gets done.", BookOpen]
   ] as const;
 
   return (
@@ -273,11 +273,10 @@ export function MainUseCaseSection() {
         <div className="max-w-2xl">
           <p className="text-sm font-semibold text-accent">Use cases</p>
           <h2 className="mt-2 max-w-xl text-3xl font-semibold tracking-tight">
-            Start with the questions your team already answers
+            Put your knowledge where the questions happen
           </h2>
           <p className="mt-4 max-w-lg text-sm leading-6 text-white/70">
-            AskDoc works across customer support, internal knowledge, and sales or product enablement, without locking
-            the product to one department.
+            AskDoc turns your trusted docs into assistants for customers, website visitors, and internal teams.
           </p>
         </div>
         <div className="mt-10 grid gap-3 md:grid-cols-3">
@@ -343,7 +342,7 @@ export function MainPricingSection({ headline = "Pricing that fits a launch path
             <h2 className="mt-2 max-w-2xl text-3xl font-semibold tracking-tight">{headline}</h2>
           </div>
           <p className="max-w-md text-sm leading-6 text-muted-foreground">
-            Start free with one bot and five documents. Upgrade when you need more knowledge sources, more widgets, custom
+            Start free with one bot and 20 documents. Upgrade when you need more knowledge sources, more widgets, custom
             styling, and higher message volume.
           </p>
         </div>
@@ -351,6 +350,10 @@ export function MainPricingSection({ headline = "Pricing that fits a launch path
           {PLAN_ORDER.map((plan) => {
             const config = PLAN_CONFIGS[plan];
             const highlighted = plan === "pro";
+            const features =
+              plan === "free"
+                ? ["1 bot", "20 documents", "200 monthly messages", "AskDoc branding on widget"]
+                : config.features.filter((feature) => feature !== "Priority ingestion");
 
             return (
               <div
@@ -378,7 +381,7 @@ export function MainPricingSection({ headline = "Pricing that fits a launch path
                   </span>
                 </div>
                 <ul className="mt-6 space-y-3">
-                  {config.features.map((feature) => (
+                  {features.map((feature) => (
                     <li key={feature} className="flex items-start gap-2 text-sm">
                       <Check className={cn("mt-0.5 size-4 shrink-0", highlighted ? "text-accent" : "text-primary")} />
                       <span>{feature}</span>
@@ -397,7 +400,7 @@ export function MainPricingSection({ headline = "Pricing that fits a launch path
   );
 }
 
-export function MainFinalCta({ copy = "Upload five docs, test one bot, and see the widget before you think about a paid plan." }) {
+export function MainFinalCta({ copy = "Upload 20 docs, test one bot, and see the widget before you think about a paid plan." }) {
   return (
     <section className="bg-slate-950 text-white">
       <div className="mx-auto flex max-w-6xl flex-col justify-between gap-8 px-6 py-14 md:flex-row md:items-center">
