@@ -23,10 +23,7 @@ export default function HomePage() {
 
       <section className="relative overflow-hidden border-y bg-[#eef7f4]">
         <div className="absolute inset-x-0 top-0 h-[520px] bg-[linear-gradient(180deg,#dff2eb_0%,#eef7f4_68%,rgba(238,247,244,0)_100%)]" />
-        <div className="absolute inset-x-6 top-[470px] mx-auto hidden max-w-[1080px] md:block">
-          <MainDashboardScene />
-        </div>
-        <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center px-6 pb-12 pt-16 text-center md:pb-[700px] md:pt-24">
+        <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center px-6 pb-12 pt-16 text-center md:min-h-[calc(100svh-82px)] md:justify-center md:pb-32 md:pt-20">
           <h1 className="max-w-4xl text-4xl font-semibold leading-tight tracking-tight text-slate-950 md:text-6xl">
             Build AI assistants from your company knowledge
           </h1>
@@ -67,6 +64,9 @@ export default function HomePage() {
               </div>
             </div>
           </div>
+        </div>
+        <div className="relative z-10 mx-auto -mt-20 hidden max-w-[1080px] px-6 pb-20 md:block">
+          <MainDashboardScene />
         </div>
       </section>
 

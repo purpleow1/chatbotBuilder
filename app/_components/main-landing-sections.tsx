@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   Zap
 } from "lucide-react";
+import { HeroChatAnimationFrame } from "@/app/_components/hero-chat-animation-frame";
 import { Button } from "@/components/ui/button";
 import { PLAN_CONFIGS, PLAN_ORDER } from "@/lib/plans";
 import { cn } from "@/lib/utils";
@@ -77,7 +78,9 @@ export function MainDashboardScene({ className }: { className?: string }) {
   ] as const;
 
   return (
-    <div className={cn("relative overflow-hidden rounded-lg border bg-white shadow-2xl shadow-slate-900/12", className)}>
+    <HeroChatAnimationFrame
+      className={cn("relative overflow-hidden rounded-lg border bg-white shadow-2xl shadow-slate-900/12", className)}
+    >
       <div className="flex h-10 items-center gap-2 border-b bg-slate-50 px-4">
         <span className="size-3 rounded-full bg-rose-400" />
         <span className="size-3 rounded-full bg-amber-400" />
@@ -124,10 +127,10 @@ export function MainDashboardScene({ className }: { className?: string }) {
             </div>
           </div>
           <div className="space-y-3">
-            <div className="ml-auto max-w-[78%] rounded-lg rounded-br-sm bg-slate-700 px-4 py-3 text-sm text-white">
+            <div className="hero-chat-message hero-chat-delay-1 ml-auto max-w-[78%] rounded-lg rounded-br-sm bg-slate-700 px-4 py-3 text-sm text-white">
               What should new partners know before launch?
             </div>
-            <div className="max-w-[86%] rounded-lg rounded-bl-sm border bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
+            <div className="hero-chat-message hero-chat-delay-2 max-w-[86%] rounded-lg rounded-bl-sm border bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
               Share the reseller checklist, current positioning, support escalation path, and the approved pricing notes.
               The answer is grounded in the partner playbook and product docs.
               <div className="mt-3 flex flex-wrap gap-2">
@@ -138,10 +141,10 @@ export function MainDashboardScene({ className }: { className?: string }) {
                 ))}
               </div>
             </div>
-            <div className="ml-auto max-w-[78%] rounded-lg rounded-br-sm bg-slate-700 px-4 py-3 text-sm text-white">
+            <div className="hero-chat-message hero-chat-delay-3 ml-auto max-w-[78%] rounded-lg rounded-br-sm bg-slate-700 px-4 py-3 text-sm text-white">
               Can I publish this bot on our docs site?
             </div>
-            <div className="max-w-[88%] rounded-lg rounded-bl-sm border bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
+            <div className="hero-chat-message hero-chat-delay-4 max-w-[88%] rounded-lg rounded-bl-sm border bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
               Yes. Copy the widget snippet from bot settings, choose the welcome message and theme, then keep improving
               answers from the same private testing workspace.
             </div>
@@ -197,7 +200,7 @@ export function MainDashboardScene({ className }: { className?: string }) {
           </div>
         </aside>
       </div>
-    </div>
+    </HeroChatAnimationFrame>
   );
 }
 
