@@ -41,26 +41,39 @@ export default function HomePage() {
               <span className="size-3 rounded-full bg-emerald-500" />
               <span className="ml-2 text-[11px] text-slate-400">app.askdoc.ai/bots</span>
             </div>
-            <div className="space-y-3 p-4">
+            <div className="space-y-3 p-4 text-left">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-slate-950">AskDoc Demo</p>
-                  <p className="text-xs text-slate-500">Partner + team bot</p>
+                  <p className="text-sm font-semibold text-slate-950">AskDoc</p>
+                  <p className="text-xs text-slate-500">Support bot</p>
                 </div>
-                <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700">Live</span>
+                <span className="shrink-0 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700">
+                  Widget enabled
+                </span>
               </div>
               <div className="ml-auto max-w-[86%] rounded-lg rounded-br-sm bg-slate-900 px-3 py-2 text-sm text-white">
-                Can I publish this on our docs site?
+                Can I update the delivery address before my order ships?
               </div>
               <div className="max-w-[92%] rounded-lg rounded-bl-sm border bg-slate-50 px-3 py-2 text-sm text-slate-700">
-                Yes. Use the widget snippet, then keep improving answers from the same private testing workspace.
+                Yes. Use the change link in your order email before the shipping label is created.
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {["shipping-policy.md", "order-changes-faq.md"].map((source) => (
+                    <span key={source} className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                      {source}
+                    </span>
+                  ))}
+                </div>
               </div>
-              <div className="flex flex-wrap gap-2 pt-1">
-                {["team-handbook.pdf", "product-docs.md"].map((source) => (
-                  <span key={source} className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
-                    {source}
+              <div className="ml-auto max-w-[72%] rounded-lg rounded-br-sm bg-slate-900 px-3 py-2 text-sm text-white">
+                How do I know it saved?
+              </div>
+              <div className="max-w-[92%] rounded-lg rounded-bl-sm border bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                The order page will show the new city and delivery window. You will also get an updated shipping email.
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                    delivery-playbook.pdf
                   </span>
-                ))}
+                </div>
               </div>
             </div>
           </div>

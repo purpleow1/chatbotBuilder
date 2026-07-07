@@ -68,7 +68,8 @@ export function MainHeroActions() {
 }
 
 export function MainDashboardScene({ className }: { className?: string }) {
-  const sources = ["team-handbook.pdf", "partner-playbook.csv", "product-docs.md"];
+  const deliveryUpdateSources = ["shipping-policy.md", "order-changes-faq.md"];
+  const deliveryConfirmationSources = ["delivery-playbook.pdf"];
   const steps = ["Create bot", "Upload docs", "Test answers", "Publish widget"];
   const widgetSettings = [
     ["Tone", "Friendly"],
@@ -128,13 +129,12 @@ export function MainDashboardScene({ className }: { className?: string }) {
           </div>
           <div className="space-y-3">
             <div className="hero-chat-message hero-chat-delay-1 ml-auto max-w-[78%] rounded-lg rounded-br-sm bg-slate-700 px-4 py-3 text-sm text-white">
-              What should new partners know before launch?
+              Can I update the delivery address before my order ships?
             </div>
             <div className="hero-chat-message hero-chat-delay-2 max-w-[86%] rounded-lg rounded-bl-sm border bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
-              Share the reseller checklist, current positioning, support escalation path, and the approved pricing notes.
-              The answer is grounded in the partner playbook and product docs.
+              Yes. Use the change link in your order email before the shipping label is created.
               <div className="mt-3 flex flex-wrap gap-2">
-                {sources.map((source) => (
+                {deliveryUpdateSources.map((source) => (
                   <span key={source} className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
                     {source}
                   </span>
@@ -142,11 +142,17 @@ export function MainDashboardScene({ className }: { className?: string }) {
               </div>
             </div>
             <div className="hero-chat-message hero-chat-delay-3 ml-auto max-w-[78%] rounded-lg rounded-br-sm bg-slate-700 px-4 py-3 text-sm text-white">
-              Can I publish this bot on our docs site?
+              How do I know it saved?
             </div>
             <div className="hero-chat-message hero-chat-delay-4 max-w-[88%] rounded-lg rounded-bl-sm border bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
-              Yes. Copy the widget snippet from bot settings, choose the welcome message and theme, then keep improving
-              answers from the same private testing workspace.
+              The order page will show the new city and delivery window. You will also get an updated shipping email.
+              <div className="mt-3 flex flex-wrap gap-2">
+                {deliveryConfirmationSources.map((source) => (
+                  <span key={source} className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                    {source}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </section>
