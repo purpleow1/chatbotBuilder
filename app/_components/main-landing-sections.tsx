@@ -22,6 +22,7 @@ import {
   Zap
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { MainHeaderNavReveal } from "@/app/_components/main-header-nav-reveal";
 import { PLAN_CONFIGS, PLAN_ORDER } from "@/lib/plans";
 import { cn } from "@/lib/utils";
 
@@ -48,20 +49,7 @@ export function MainLandingHeader({ active, className }: MainLandingHeaderProps)
         <Link href="/app" className="inline-flex items-center text-foreground">
           <Image src={LOGO_SRC} alt={`${PRODUCT_NAME} logo`} width={140} height={40} priority className="h-10 w-auto" />
         </Link>
-        <nav className="hidden items-center gap-1 md:flex">
-          {links.map(([label, href, key]) => (
-            <Link
-              key={label}
-              href={href}
-              className={cn(
-                "rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground",
-                active === key && "bg-muted text-foreground"
-              )}
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
+        <MainHeaderNavReveal active={active} links={links} />
         <div className="flex items-center gap-2">
           <Button variant="ghost" asChild className="hidden md:inline-flex">
             <Link href={LOGIN_HREF}>Log in</Link>
@@ -80,7 +68,7 @@ export function MainLandingHeader({ active, className }: MainLandingHeaderProps)
 
 export function MainHeroActions() {
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="flex flex-wrap items-center justify-center gap-3">
       <Button size="lg" asChild>
         <Link href={SIGNUP_HREF}>
           Create your first bot
@@ -101,7 +89,7 @@ export function MainDashboardScene({ className }: { className?: string }) {
         <span className="size-3 rounded-full bg-rose-400" />
         <span className="size-3 rounded-full bg-amber-400" />
         <span className="size-3 rounded-full bg-emerald-500" />
-        <span className="ml-3 h-5 w-56 rounded bg-white text-[11px] leading-5 text-slate-400">app.askdoc.ai/app/bots/acme</span>
+        <span className="ml-3 h-5 w-56 rounded bg-white text-[11px] leading-5 text-slate-400">app.askdoc.ai/bots</span>
       </div>
       <div className="grid h-[480px] grid-cols-[150px_minmax(0,1fr)_210px] bg-slate-100 lg:grid-cols-[170px_minmax(0,1fr)_250px] xl:grid-cols-[190px_minmax(0,1fr)_270px]">
         <aside className="border-r bg-white p-3 lg:p-4">
@@ -109,10 +97,7 @@ export function MainDashboardScene({ className }: { className?: string }) {
             <span className="flex size-8 items-center justify-center rounded-md bg-primary/10 text-primary">
               <LayoutDashboard className="size-4" />
             </span>
-            <div>
-              <p className="text-sm font-semibold">Acme Knowledge</p>
-              <p className="text-xs text-slate-500">Pro workspace</p>
-            </div>
+            <p className="text-sm font-semibold">Launch checklist</p>
           </div>
           <div className="space-y-2">
             {steps.map((step, index) => (
@@ -120,13 +105,13 @@ export function MainDashboardScene({ className }: { className?: string }) {
                 key={step}
                 className={cn(
                   "flex items-center gap-2 rounded-md px-2 py-2 text-xs lg:px-3 lg:text-sm",
-                  index === 2 ? "bg-primary text-primary-foreground" : "text-slate-600"
+                  index === 2 ? "bg-slate-200 text-slate-800" : "text-slate-600"
                 )}
               >
                 <span
                   className={cn(
                     "flex size-5 items-center justify-center rounded-full text-[11px] font-semibold",
-                    index === 2 ? "bg-white/20" : "bg-slate-100"
+                    index === 2 ? "bg-white text-slate-600" : "bg-slate-100"
                   )}
                 >
                   {index + 1}
@@ -183,7 +168,7 @@ export function MainDashboardScene({ className }: { className?: string }) {
               <p className="rounded-md bg-white px-3 py-2 text-xs text-slate-600 shadow-sm">
                 Hi, I can answer product, policy, and onboarding questions.
               </p>
-              <p className="rounded-md bg-primary px-3 py-2 text-xs text-primary-foreground">
+              <p className="rounded-md bg-slate-200 px-3 py-2 text-xs text-slate-700">
                 Ask about pricing, setup, or process.
               </p>
             </div>

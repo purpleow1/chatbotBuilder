@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Check, FileText, MessageSquare, PlugZap } from "lucide-react";
+import { ArrowRight, FileText, MessageSquare, PlugZap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   MainDashboardScene,
@@ -16,7 +16,7 @@ import {
 } from "@/app/_components/main-landing-sections";
 
 export const metadata: Metadata = {
-  title: `${PRODUCT_NAME} | Company knowledge bot builder`,
+  title: `${PRODUCT_NAME} | AI assistants from company knowledge`,
   description: "Turn company docs into grounded AI assistants for customers, employees, partners, and website visitors."
 };
 
@@ -32,40 +32,32 @@ export default function HomePage() {
       <MainLandingHeader active="product" />
 
       <section className="relative overflow-hidden border-y bg-[#eef7f4]">
-        <div className="absolute inset-x-6 top-[500px] mx-auto hidden max-w-[1080px] md:block">
+        <div className="absolute inset-x-0 top-0 h-[520px] bg-[linear-gradient(180deg,#dff2eb_0%,#eef7f4_68%,rgba(238,247,244,0)_100%)]" />
+        <div className="absolute inset-x-6 top-[470px] mx-auto hidden max-w-[1080px] md:block">
           <MainDashboardScene />
         </div>
-        <div className="relative z-10 mx-auto max-w-6xl px-6 pb-12 pt-12 md:pb-[690px] md:pt-16">
-          <p className="text-sm font-semibold text-primary">Company knowledge bot builder</p>
-          <h1 className="mt-4 max-w-4xl text-4xl font-semibold leading-tight tracking-tight text-slate-950 md:text-5xl">
-            {PRODUCT_NAME} turns company knowledge into AI assistants for customers and teams.
+        <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center px-6 pb-12 pt-16 text-center md:pb-[700px] md:pt-24">
+          <h1 className="max-w-4xl text-4xl font-semibold leading-tight tracking-tight text-slate-950 md:text-6xl">
+            Build AI assistants from your company knowledge
           </h1>
-          <div className="mt-5 flex max-w-4xl flex-col gap-5 md:flex-row md:items-start md:justify-between">
-            <p className="max-w-2xl text-lg leading-8 text-slate-700">
-              Upload policies, FAQs, product docs, playbooks, and spreadsheets. Test grounded answers in the app, then
-              publish the same bot as a branded website widget.
-            </p>
+          <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-700">
+            Upload docs, guides, policies, and playbooks, then publish helpful assistants for customers, teams, and
+            workflows.
+          </p>
+          <div className="mt-8">
             <MainHeroActions />
           </div>
-          <div className="mt-8 flex flex-wrap gap-3 text-sm text-slate-700">
-            {["Customer support", "Internal knowledge", "Sales enablement", "1 script tag to embed"].map((item) => (
-              <span key={item} className="inline-flex items-center gap-2 rounded-full border bg-white/80 px-3 py-1.5">
-                <Check className="size-4 text-primary" />
-                {item}
-              </span>
-            ))}
-          </div>
-          <div className="mt-10 rounded-lg border bg-white shadow-2xl shadow-slate-900/10 md:hidden">
+          <div className="mt-14 rounded-lg border bg-white shadow-2xl shadow-slate-900/10 md:hidden">
             <div className="flex h-10 items-center gap-2 border-b bg-slate-50 px-4">
               <span className="size-3 rounded-full bg-rose-400" />
               <span className="size-3 rounded-full bg-amber-400" />
               <span className="size-3 rounded-full bg-emerald-500" />
-              <span className="ml-2 text-[11px] text-slate-400">askdoc.ai/app</span>
+              <span className="ml-2 text-[11px] text-slate-400">app.askdoc.ai/bots</span>
             </div>
             <div className="space-y-3 p-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-slate-950">Acme Knowledge</p>
+                  <p className="text-sm font-semibold text-slate-950">AskDoc Demo</p>
                   <p className="text-xs text-slate-500">Partner + team bot</p>
                 </div>
                 <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700">Live</span>
