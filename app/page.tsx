@@ -1,7 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowRight, FileText, MessageSquare, PlugZap } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   MainDashboardScene,
   MainFeatureGrid,
@@ -11,9 +8,7 @@ import {
   MainLandingHeader,
   MainPricingSection,
   MainUseCaseSection,
-  MainWorkflowBand,
   PRODUCT_NAME,
-  SIGNUP_HREF
 } from "@/app/_components/main-landing-sections";
 
 export const metadata: Metadata = {
@@ -22,12 +17,6 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  const productHighlights = [
-    ["Knowledge upload", "Drag in policies, product docs, playbooks, decks, and CSVs with visible ingestion states.", FileText],
-    ["Private answer testing", "Ask real team, prospect, and customer questions in a private testing workspace before launch.", MessageSquare],
-    ["One-line embed", "Copy the script tag, control availability, and publish the same bot to any website.", PlugZap]
-  ] as const;
-
   return (
     <main className="min-h-screen bg-background text-foreground">
       <MainLandingHeader active="product" />
@@ -85,41 +74,6 @@ export default function HomePage() {
 
       <MainHowItWorksSection />
 
-      <section id="product" className="bg-white">
-        <div className="mx-auto grid max-w-6xl gap-10 px-6 py-16 md:grid-cols-[0.85fr_1.15fr] md:items-center">
-          <div>
-            <p className="text-sm font-semibold text-primary">Product loop</p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-tight">Build once. Publish wherever questions happen.</h2>
-            <p className="mt-4 text-muted-foreground">
-              Create one trusted knowledge assistant, test its answers privately, then publish it to a website, docs page,
-              customer portal, or internal team workspace.
-            </p>
-            <Button className="mt-7" variant="outline" asChild>
-              <Link href={SIGNUP_HREF}>
-                Start building a bot
-                <ArrowRight className="size-4" />
-              </Link>
-            </Button>
-          </div>
-          <div className="grid gap-4">
-            {productHighlights.map(([title, copy, Icon]) => (
-              <div key={title} className="rounded-lg border bg-background p-5">
-                <div className="flex items-start gap-4">
-                  <span className="flex size-11 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-                    <Icon className="size-5" />
-                  </span>
-                  <div>
-                    <h3 className="font-semibold">{title}</h3>
-                    <p className="mt-1 text-sm leading-6 text-muted-foreground">{copy}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <MainWorkflowBand />
       <MainUseCaseSection />
       <MainFeatureGrid variant="compact" />
       <MainPricingSection />
