@@ -7,6 +7,7 @@ import {
   MainFeatureGrid,
   MainFinalCta,
   MainHeroActions,
+  MainHowItWorksSection,
   MainLandingHeader,
   MainPricingSection,
   MainUseCaseSection,
@@ -81,6 +82,8 @@ export default function HomePage() {
       </section>
 
       {/* <MainProofStrip /> */}
+
+      <MainHowItWorksSection />
 
       <section id="product" className="bg-white">
         <div className="mx-auto grid max-w-6xl gap-10 px-6 py-16 md:grid-cols-[0.85fr_1.15fr] md:items-center">

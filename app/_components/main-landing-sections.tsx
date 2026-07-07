@@ -183,6 +183,52 @@ export function MainDashboardScene({ className }: { className?: string }) {
   );
 }
 
+export function MainHowItWorksSection() {
+  const steps = [
+    ["Create the assistant", "Choose the audience, purpose, tone, fallback message, and widget basics.", BotMessageSquare],
+    ["Upload trusted knowledge", "Add docs, policies, product guides, playbooks, PDFs, markdown files, and CSVs.", FileText],
+    ["Test real questions", "Ask customer, team, and sales questions privately while reviewing the sources behind each answer.", MessageSquare],
+    ["Publish where it belongs", "Copy the embed snippet, enable the widget, and keep improving the same assistant from the dashboard.", Code2]
+  ] as const;
+
+  return (
+    <section className="border-y bg-white">
+      <div className="mx-auto max-w-6xl px-6 py-16">
+        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+          <div className="max-w-2xl">
+            <p className="text-sm font-semibold text-primary">How AskDoc works</p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-tight">
+              Build once. Test privately. Publish anywhere.
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              Turn trusted company materials into assistants your customers, employees, and partners can use wherever
+              questions happen: on your site, in docs, in portals, or inside team workflows.
+            </p>
+          </div>
+          <Button variant="outline" asChild className="w-fit">
+            <Link href={SIGNUP_HREF}>
+              Start setup
+              <ChevronRight className="size-4" />
+            </Link>
+          </Button>
+        </div>
+        <div className="mt-10 grid gap-4 md:grid-cols-4">
+          {steps.map(([step, copy, Icon], index) => (
+            <div key={step} className="rounded-lg border bg-background p-5">
+              <span className="flex size-10 items-center justify-center rounded-md bg-primary/10 text-primary">
+                <Icon className="size-5" />
+              </span>
+              <p className="mt-5 text-sm font-semibold text-muted-foreground">0{index + 1}</p>
+              <h3 className="mt-1 text-lg font-semibold">{step}</h3>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">{copy}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function MainWorkflowBand({ title = "From docs to live widget in four steps" }: { title?: string }) {
   const steps = [
     ["Create", "Name the bot, define its audience, fallback copy, and widget basics.", BotMessageSquare],
@@ -296,7 +342,7 @@ export function MainFeatureGrid({ variant = "default" }: { variant?: "default" |
   );
 }
 
-export function MainPricingSection({ headline = "Pricing that fits a real launch path" }: { headline?: string }) {
+export function MainPricingSection({ headline = "Pricing that fits a launch path" }: { headline?: string }) {
   return (
     <section id="pricing" className="bg-white">
       <div className="mx-auto max-w-6xl px-6 py-16">
@@ -323,16 +369,16 @@ export function MainPricingSection({ headline = "Pricing that fits a real launch
                   highlighted && "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/15"
                 )}
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
+                <div>
+                  <div className="flex items-start justify-between gap-4">
                     <h3 className="text-xl font-semibold">{config.name}</h3>
-                    <p className={cn("mt-2 text-sm", highlighted ? "text-primary-foreground/75" : "text-muted-foreground")}>
-                      {config.description}
-                    </p>
+                    {highlighted ? (
+                      <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold text-primary">Popular</span>
+                    ) : null}
                   </div>
-                  {highlighted ? (
-                    <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-primary">Popular</span>
-                  ) : null}
+                  <p className={cn("mt-2 text-sm", highlighted ? "text-primary-foreground/75" : "text-muted-foreground")}>
+                    {config.description}
+                  </p>
                 </div>
                 <div className="mt-6 flex items-end gap-1">
                   <span className="text-4xl font-semibold">{config.price}</span>
